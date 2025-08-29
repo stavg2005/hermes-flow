@@ -18,8 +18,8 @@ export class DelayProcessor implements NodeProcessor {
     signal?: AbortSignal
   ): Promise<void> {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-
-    await this.createDelay(1000, signal);
+    console.log("delay= " + nodeData.delay);
+    await this.createDelay(nodeData.delay * 1000, signal);
   }
 
   private createDelay(ms: number, signal?: AbortSignal): Promise<void> {

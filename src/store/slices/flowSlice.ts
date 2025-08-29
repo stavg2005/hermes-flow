@@ -21,8 +21,8 @@ const initializeNodeId = (nodes: CustomNode[]) => {
   nodeId =
     nodes.length > 0
       ? Math.max(
-          ...nodes.map(node => parseInt(node.id.replace(/\D/g, '')) || 0)
-        )
+        ...nodes.map(node => parseInt(node.id.replace(/\D/g, '')) || 0)
+      )
       : 0;
 };
 const getNodeId = (): string => `node_${++nodeId}`;
@@ -57,13 +57,13 @@ const flowSlice = createSlice({
     updateNode: (
       state,
       action: PayloadAction<{
-        id: string;
-        updates: Partial<CustomNode>;
+        id: string
+        updates: Partial<Record<string, unknown>>;
       }>
     ) => {
       const { id, updates } = action.payload;
       const nodeIndex = state.nodes.findIndex(node => node.id === id);
-
+      console.log("node data" + updates?.duration);
       if (nodeIndex !== -1) {
         state.nodes[nodeIndex] = { ...state.nodes[nodeIndex], ...updates };
       }

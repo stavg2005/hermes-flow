@@ -1,4 +1,5 @@
-import { GetProccecedNodeID, useAppSelector } from '@/store/store';
+import { GetProccecedNodeID, useAppSelector, useAppDispatch } from '@/store/store';
+import { flowActions } from '@/store/slices/flowSlice';
 import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 
 import React, { useState } from 'react';
@@ -8,19 +9,20 @@ const DelayNodeComponent: React.FC<NodeProps> = ({ id }) => {
   const [duration, setDuration] = useState(250);
   const currentProcessingNode = useAppSelector(GetProccecedNodeID);
   const { updateNodeData } = useReactFlow();
-
+  const dispacth = useAppDispatch();
   const isBeingProcessed = currentProcessingNode === id;
 
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
-    updateNodeData(id, { duration: newDuration }); // Only store what matters
+    updateNodeData(id, { delay: newDuration });// Only store what matters
+
+    dispacth(flowActions.updateNode({ id: id, updates: { duration: newDuration } }));
   };
 
   return (
     <div
-      className={`relative bg-[#373333] rounded-3xl p-4 min-w-[230px] min-h-[96px] transition-all duration-200  ${
-        isBeingProcessed ? 'border-4 border-white' : ''
-      }`}
+      className={`relative bg-[#373333] rounded-3xl p-4 min-w-[230px] min-h-[96px] transition-all duration-200  ${isBeingProcessed ? 'border-4 border-white' : ''
+        }`}
     >
       <Handle
         type='target'

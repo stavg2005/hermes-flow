@@ -23,7 +23,7 @@ export const useGraphProcessing = () => {
         throw new Error('No start node found');
       }
 
-      const clients = nodes.map((node => node.type === "clients"));
+      const clients = nodes.find((node => node.type === "clients"));
       if (!clients)
         throw new Error("no clients found");
       let currentNodeId: string | null = startNode.id;
