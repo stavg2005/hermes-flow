@@ -6,7 +6,14 @@ import type {
   XYPosition,
 } from '@xyflow/react';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
-import type { CustomEdge, CustomNode, FlowState } from '../../types/types';
+import type { CustomEdge, CustomNode } from '../../features/nodes/types/nodes.ts';
+
+export interface FlowState {
+  nodes: CustomNode[];
+  edges: CustomEdge[];
+  selectedNodes: string[];
+  selectedEdges: string[];
+}
 
 const initialState: FlowState = {
   nodes: [],
