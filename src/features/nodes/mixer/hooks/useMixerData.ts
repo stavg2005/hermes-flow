@@ -4,9 +4,7 @@ import {
   MixerNodeData,
 } from '@/features/nodes/types/NodeData';
 import { useNodeConnections, useNodesData, useReactFlow } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useAppDispatch, useAppSelector } from '@/app/store';
-import { flowActions } from '@/store/slices/flowSlice';
+import { useCallback, useEffect, useMemo } from 'react';
 
 export const useMixerData = (nodeId: string) => {
   const connections = useNodeConnections({ handleType: 'target' });
@@ -14,19 +12,8 @@ export const useMixerData = (nodeId: string) => {
     connections.map(connection => connection.source)
   );
 
-  // React Flow hook for immediate updates
   const { updateNodeData: updateNodeDataReactFlow } = useReactFlow();
 
-  // Redux dispatch for state sync
-  const dispatch = useAppDispatch();
-
-  // Get current node data from Redux (optional - for reading)
-  const currentNodeData = useAppSelector(state =>
-    state.flow.nodes.find(n => n.id === nodeId)?.data
-  );
-
-  // Track previous data to prevent unnecessary updates
-  const previousDataRef = useRef<string>('');
 
   const processedData = useMemo(() => {
     const fileInputNodes = connectedNodesData.filter(
@@ -46,29 +33,14 @@ export const useMixerData = (nodeId: string) => {
       const mixerData: MixerNodeData = {
         files: data,
       };
-
-      // 1. Update React Flow immediately for responsive UI
       updateNodeDataReactFlow(nodeId, mixerData);
-
-      // 2. Sync to Redux for global state
-      dispatch(flowActions.updateNode({
-        id: nodeId,
-        updates: mixerData
-      }));
     },
-    [nodeId, updateNodeDataReactFlow, dispatch]
+    [nodeId, updateNodeDataReactFlow]
   );
 
   // Only update when actual connection data changes
   useEffect(() => {
-    const currentDataSerialized = JSON.stringify(
-      connections.map(conn => conn.source)
-    );
-
-    if (currentDataSerialized !== previousDataRef.current) {
-      updateMixerData(processedData);
-      previousDataRef.current = currentDataSerialized;
-    }
+    updateMixerData(processedData);
   }, [connections, processedData, updateMixerData]);
 
   return processedData;

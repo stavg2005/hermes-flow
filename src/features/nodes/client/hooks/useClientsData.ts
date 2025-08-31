@@ -1,4 +1,4 @@
-import { ClientData } from '@/types/types';
+import { ClientData } from '@/features/nodes/types/NodeData';
 import { useReactFlow } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';

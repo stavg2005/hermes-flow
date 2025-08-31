@@ -8,8 +8,8 @@ import type { Edge, Node } from '@xyflow/react';
 
 export type CustomNode = Node;
 export type CustomEdge = Edge;
-export type NodeTYpe = "fileINput" | "mixer" | "delay" | "clients" | "fileOptions";
-export const nodeTypes = {
+export type NodeType = "fileINput" | "mixer" | "delay" | "clients" | "fileOptions";
+export const  nodeTypes = {
   fileInput: FileInputNodeComponent,
   mixer: MixerNodeComponent,
   delay: DelayNodeComponent,

@@ -1,28 +1,20 @@
-import React from 'react';
 
-interface FileControlsProps {
-  onNew: () => void;
-  onSave: () => void;
-  onLoad: () => void;
-}
+import { useFileOperations } from '../hooks/useFileOperations';
 
-export const FileControls: React.FC<FileControlsProps> = ({
-  onNew,
-  onSave,
-  onLoad,
-}) => {
+export const FileControls = () => {
+  const { saveGraph, loadGraph, newGraph } = useFileOperations();
   const buttonClass =
     'text-slate-300 hover:text-white transition-colors text-sm font-medium';
 
   return (
     <div className='flex items-center gap-6'>
-      <button onClick={onNew} className={buttonClass}>
+      <button onClick={newGraph} className={buttonClass}>
         New
       </button>
-      <button onClick={onSave} className={buttonClass}>
+      <button onClick={saveGraph} className={buttonClass}>
         Save
       </button>
-      <button onClick={onLoad} className={buttonClass}>
+      <button onClick={loadGraph} className={buttonClass}>
         Load
       </button>
     </div>

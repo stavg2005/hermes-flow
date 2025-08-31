@@ -1,13 +1,15 @@
+import { useAppDispatch, useAppSelector } from '@/app/store';
 import { CustomEdge, CustomNode } from '@/features/nodes/types/nodes';
+import { useEdges, useNodes } from '@xyflow/react';
 import { useCallback, useRef } from 'react';
+import { graphProcessingActions } from '../../../store/slices/graphProcessingSlice';
 import { GraphTraversalService } from '../services/GraphTraversalService';
 import { ProcessorRegistry } from '../services/ProcessorRegistry';
-import { graphProcessingActions } from '../../../store/slices/graphProcessingSlice';
-import { useAppDispatch, useAppSelector } from '@/app/store';
 
 export const useGraphProcessing = () => {
   const dispatch = useAppDispatch();
-  const { nodes, edges } = useAppSelector(state => state.flow);
+  const nodes = useNodes();
+  const edges = useEdges();
   const processingState = useAppSelector(state => state.graph);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -23,9 +25,8 @@ export const useGraphProcessing = () => {
         throw new Error('No start node found');
       }
 
-      const clients = nodes.find((node => node.type === "clients"));
-      if (!clients)
-        throw new Error("no clients found");
+      const clients = nodes.find(node => node.type === 'clients');
+      if (!clients) throw new Error('no clients found');
       let currentNodeId: string | null = startNode.id;
 
       while (currentNodeId && !signal.aborted) {

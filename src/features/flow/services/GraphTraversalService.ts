@@ -1,4 +1,4 @@
-import { CustomEdge, CustomNode } from '@/types/types';
+import { CustomEdge, CustomNode } from '@/features/nodes/types/nodes';
 
 export const GraphTraversalService = {
   findStartNode(nodes: CustomNode[], edges: CustomEdge[]): CustomNode | null {

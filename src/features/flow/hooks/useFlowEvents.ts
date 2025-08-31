@@ -1,73 +1,70 @@
-import { useCallback } from 'react';
-import { useReactFlow } from '@xyflow/react';
-import type {
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-  Connection,
-  NodeChange,
-  EdgeChange
-} from '@xyflow/react'
-import { toast } from 'react-toastify'; // or whatever toast library you use
-import { flowActions } from '@/store/slices/flowSlice';
-import { createDefaultNodeData } from '@/features/nodes/types/nodeDataFactory';
+// Updated useFlowHandlers with debugging
+import { GetIsRunning, useAppSelector } from '@/app/store';
 import { NodeType } from '@/features/flow/types/connectionConfig';
-import { GetIsRunning, selectEdges, selectNodes, useAppDispatch, useAppSelector } from '@/app/store';
-import { isValidConnection, getConnectionErrorMessage } from '../services/ConnectionValidation.ts';
+import { createDefaultNodeData } from '@/features/nodes/types/nodeDataFactory';
+import type { Connection, OnConnect } from '@xyflow/react';
+import { addEdge, useEdges, useNodes, useReactFlow } from '@xyflow/react';
+import { useCallback } from 'react';
+import { toast } from 'react-toastify';
+import {
+  getConnectionErrorMessage,
+  isValidConnection,
+} from '../services/ConnectionValidation.ts';
 
 export const useFlowHandlers = () => {
   const reactFlowInstance = useReactFlow();
-  const dispatch = useAppDispatch();
-  const nodes = useAppSelector(selectNodes);
-  const edges = useAppSelector(selectEdges);
+  const nodes = useNodes();
+  const edges = useEdges();
+  const { setEdges, addNodes } = useReactFlow();
   const isProcessing = useAppSelector(GetIsRunning);
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      if (!isProcessing) {
-        dispatch(flowActions.applyNodeChanges(changes));
-      }
-    },
-    [dispatch, isProcessing]
-  );
-
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      if (!isProcessing) {
-        dispatch(flowActions.applyEdgeChanges(changes));
-      }
-    },
-    [dispatch, isProcessing]
-  );
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
       if (isProcessing) return;
-      console.log(nodes);
+
+      console.log('Connecting:', nodes);
+
       if (isValidConnection(connection, nodes, edges)) {
-        dispatch(flowActions.addEdge(connection));
+        setEdges(eds => addEdge(connection, eds));
       } else {
-        const errorMessage = getConnectionErrorMessage(connection, nodes, edges);
+        const errorMessage = getConnectionErrorMessage(
+          connection,
+          nodes,
+          edges
+        );
         toast.error(errorMessage);
       }
     },
-    [dispatch, nodes, edges, isProcessing, isValidConnection, getConnectionErrorMessage]
+    [setEdges, nodes, edges, isProcessing]
   );
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    if (isProcessing) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  }, [isProcessing]);
+  const onDragOver = useCallback(
+    (event: React.DragEvent) => {
+      if (isProcessing) return;
 
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    },
+    [isProcessing]
+  );
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
-      if (isProcessing) return;
+      if (isProcessing) {
+        return;
+      }
+
       event.preventDefault();
 
       const nodeType = event.dataTransfer.getData('application/reactflow');
 
-      if (!nodeType || !reactFlowInstance) {
+      if (!nodeType) {
+        toast.error('No node type found');
+        return;
+      }
+
+      if (!reactFlowInstance) {
+        toast.error('Flow instance not available');
         return;
       }
 
@@ -76,26 +73,28 @@ export const useFlowHandlers = () => {
         y: event.clientY,
       });
 
-      const nodeData = createDefaultNodeData(nodeType as NodeType);
+      try {
+        const nodeData = createDefaultNodeData(nodeType as NodeType);
 
-      dispatch(
-        flowActions.addNode({
+        const newNode = {
+          id: `${nodeType}-${Date.now()}`,
           type: nodeType,
           position,
           data: nodeData,
-        })
-      );
+        };
+
+        addNodes(newNode);
+
+      } catch (error) {
+        toast.error(`Error creating node: ${error}`);
+      }
     },
-    [reactFlowInstance, dispatch, isProcessing]
+    [reactFlowInstance, addNodes, isProcessing]
   );
 
   return {
-    onNodesChange,
-    onEdgesChange,
     onConnect,
     onDragOver,
-    onDrop
+    onDrop,
   };
 };
-
-

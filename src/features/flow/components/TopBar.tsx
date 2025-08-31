@@ -1,6 +1,4 @@
 import { useGraphProcessing } from '@/features/flow/hooks/useGraphProcessing';
-import { useProcessingNotifications } from '@/features/flow/hooks/useProcessingNotifications';
-import { useFileOperations } from '@/features/flow/hooks/useFileOperations';
 import { Radio } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { toast } from 'react-toastify';
@@ -12,22 +10,16 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onTransmit }) => {
-  const {
-    isProcessing,
-    currentNodeID,
-    error,
-    startProcessing,
-    stopProcessing,
-  } = useGraphProcessing();
-  const { saveGraph, loadGraph, newGraph } = useFileOperations();
+  const { isProcessing, startProcessing, stopProcessing } =
+    useGraphProcessing();
 
   // Handle notifications as a side effect
-  useProcessingNotifications(isProcessing, error, currentNodeID);
 
   const handleRun = useCallback(async () => {
     console.log('in handle run');
     try {
       await startProcessing();
+      toast.success('Processing completed successfully');
     } catch (error) {
       toast.error(`Processing failed: ${error}`);
     }
@@ -38,7 +30,7 @@ const TopBar: React.FC<TopBarProps> = ({ onTransmit }) => {
       <div className='flex-1'></div>
 
       <div className='absolute left-1/2 transform -translate-x-1/2'>
-        <FileControls onNew={newGraph} onSave={saveGraph} onLoad={loadGraph} />
+        <FileControls />
       </div>
 
       <div className='flex items-center gap-3'>

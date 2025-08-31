@@ -1,5 +1,9 @@
-// components/FlowBoard.tsx
-import { nodeTypes } from "@/features/nodes/types/nodes";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  CustomEdge,
+  CustomNode,
+  nodeTypes,
+} from '@/features/nodes/types/nodes';
 
 import {
   Background,
@@ -7,29 +11,30 @@ import {
   ConnectionMode,
   ReactFlow,
   ReactFlowInstance,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import React, { useState } from "react";
+  useEdgesState,
+  useNodesState,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import React, { useState } from 'react';
 
-import {
-  selectEdges,
-  selectNodes,
-  useAppDispatch,
-  useAppSelector,
-  GetIsRunning
-} from "@/app/store";
-import { useFlowHandlers } from "../hooks/useFlowEvents.ts";
+import { GetIsRunning, useAppSelector } from '@/app/store';
+import { useFlowHandlers } from '../hooks/useFlowEvents.ts';
+
+const initialNodes: CustomNode[] = [];
+const initialEdges: CustomEdge[] = [];
+
 const FlowBoard: React.FC = () => {
-  const nodes = useAppSelector(selectNodes);
-  const edges = useAppSelector(selectEdges);
   const isProcessing = useAppSelector(GetIsRunning);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const { onNodesChange, onEdgesChange, onConnect, onDrop, onDragOver } = useFlowHandlers();
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
+  const { onConnect, onDrop, onDragOver } = useFlowHandlers();
 
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 h-screen bg-slate-950"
+      className='fixed top-0 left-0 right-0 h-screen bg-slate-950'
       onDrop={onDrop}
       onDragOver={onDragOver}
       tabIndex={0}
@@ -50,15 +55,15 @@ const FlowBoard: React.FC = () => {
         fitViewOptions={{
           padding: 0.2,
         }}
-        className="bg-slate-950"
+        className='bg-slate-950'
         proOptions={{
           hideAttribution: true,
         }}
-        multiSelectionKeyCode={["Shift"]}
-        deleteKeyCode={["Delete", "Backspace"]}
+        multiSelectionKeyCode={['Shift']}
+        deleteKeyCode={['Delete', 'Backspace']}
         selectNodesOnDrag={false}
         defaultEdgeOptions={{
-          style: { strokeWidth: 8, stroke: "white" },
+          style: { strokeWidth: 8, stroke: 'white' },
         }}
         minZoom={0.1}
         maxZoom={4}
@@ -66,13 +71,12 @@ const FlowBoard: React.FC = () => {
         <Background
           variant={BackgroundVariant.Dots}
           gap={35}
-          color="#ffffff"
+          color='#ffffff'
           style={{ opacity: 0.5 }}
         />
       </ReactFlow>
     </div>
   );
 };
-
 
 export default FlowBoard;

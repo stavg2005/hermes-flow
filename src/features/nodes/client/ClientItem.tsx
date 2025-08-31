@@ -1,4 +1,4 @@
-import { ClientData } from '@/types/types';
+import { ClientData } from '@/features/nodes/types/NodeData';
 import { Trash2 } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
 interface ClientItemProps {

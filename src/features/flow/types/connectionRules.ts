@@ -1,7 +1,7 @@
 // types/connectionRules.ts
 import { Connection } from '@xyflow/react';
-import { NodeType } from '../features/flow/types/connectionConfig';
-import { CustomEdge, CustomNode } from './types';
+import { NodeType } from '@/features/nodes/types/nodes';
+import { CustomEdge, CustomNode } from '@/features/nodes/types/nodes';
 
 export interface ConnectionRules {
   canConnectTo: Set<NodeType>;
