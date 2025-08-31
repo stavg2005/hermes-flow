@@ -1,4 +1,3 @@
-
 import { useFileOperations } from '../hooks/useFileOperations';
 
 export const FileControls = () => {

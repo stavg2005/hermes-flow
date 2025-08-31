@@ -18,7 +18,7 @@ export class DelayProcessor implements NodeProcessor {
     signal?: AbortSignal
   ): Promise<void> {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    console.log("delay= " + nodeData.delay);
+    console.log('delay= ' + nodeData.delay);
     await this.createDelay(nodeData.delay * 1000, signal);
   }
 
@@ -43,7 +43,7 @@ export class MixerProcessor implements NodeProcessor {
   ): Promise<void> {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
 
-    await this.delay(1000, signal);
+    await this.delay(5000, signal);
   }
 
   private delay(ms: number, signal?: AbortSignal): Promise<void> {

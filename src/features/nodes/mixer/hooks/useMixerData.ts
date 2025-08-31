@@ -14,7 +14,6 @@ export const useMixerData = (nodeId: string) => {
 
   const { updateNodeData: updateNodeDataReactFlow } = useReactFlow();
 
-
   const processedData = useMemo(() => {
     const fileInputNodes = connectedNodesData.filter(
       nodeData => nodeData?.type === 'fileInput'
@@ -41,7 +40,7 @@ export const useMixerData = (nodeId: string) => {
   // Only update when actual connection data changes
   useEffect(() => {
     updateMixerData(processedData);
-  }, [connections, processedData, updateMixerData]);
+  }, [processedData, updateMixerData]);
 
   return processedData;
 };

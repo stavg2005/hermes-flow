@@ -1,4 +1,4 @@
-import { CustomEdge, CustomNode } from '@/features/nodes/types/nodes'
+import { CustomEdge, CustomNode } from '@/features/nodes/types/nodes';
 import { Connection } from '@xyflow/react';
 export type NodeType =
   | 'clients'

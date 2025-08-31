@@ -1,5 +1,4 @@
-import { useState,useRef,useEffect ,useCallback } from "react";
-
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export const useProgressTimer = (isActive: boolean, duration: number) => {
   const [progress, setProgress] = useState(0);
@@ -8,9 +7,9 @@ export const useProgressTimer = (isActive: boolean, duration: number) => {
 
   const updateProgress = useCallback(() => {
     if (startTimeRef.current) {
-      const elapsed = (Date.now() - startTimeRef.current);
+      const elapsed = Date.now() - startTimeRef.current;
       const progressPercent = Math.min((elapsed / duration) * 100, 100);
-      
+
       setProgress(progressPercent);
 
       if (progressPercent < 100) {
@@ -38,8 +37,6 @@ export const useProgressTimer = (isActive: boolean, duration: number) => {
       }
     };
   }, [isActive, updateProgress]);
-
-
 
   return { progress };
 };

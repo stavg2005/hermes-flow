@@ -84,7 +84,6 @@ export const useFlowHandlers = () => {
         };
 
         addNodes(newNode);
-
       } catch (error) {
         toast.error(`Error creating node: ${error}`);
       }
