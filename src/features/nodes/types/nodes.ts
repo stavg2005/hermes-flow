@@ -1,7 +1,7 @@
 import ClientsNode from '@/features/nodes/client/ClientsNode';
 import DelayNodeComponent from '@/features/nodes/delay/DelayNode';
 import FileInputNodeComponent from '@/features/nodes/fileinput/FileInput';
-import FileOptions from '@/features/nodes/fileinput/FileOptions';
+import FileOptions from '@/features/nodes/fileoptions/FileOptions'
 import MixerNodeComponent from '@/features/nodes/mixer/Mixer';
 
 import type { Edge, Node } from '@xyflow/react';

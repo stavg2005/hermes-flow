@@ -1,5 +1,6 @@
 import { DelayNodeData, FileInputNodeData, MixerNodeData } from './NodeData';
-import { CustomEdge, CustomNode } from './nodes.ts';
+import { CustomEdge, CustomNode } from './nodes';
+import { toast } from 'react-toastify';
 export interface NodeProcessor {
   readonly nodeType: string;
   process(
@@ -66,7 +67,7 @@ export class FileProcessor implements NodeProcessor {
     signal?: AbortSignal
   ): Promise<void> {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-
+    console.log(nodeData);
     this.delay(1000, signal);
   }
 
