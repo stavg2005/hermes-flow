@@ -1,9 +1,8 @@
-import { FileInputNodeData, FileOptionsNodeData } from '@/features/nodes/types/NodeData';
+import { FileInputNodeData, } from '@/features/nodes/types/NodeData';
 import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import FileDropdown from './FileDropdown';
 import { useOptions } from './hooks/useOptions';
-import { toast } from 'react-toastify';
 
 const MOCK_FILES = [
   'test1.wav',
