@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
 export const useFileOperations = () => {
-  // Using React Flow's built-in hooks instead of Redux
   const nodes = useNodes();
   const edges = useEdges();
   const { setNodes, setEdges } = useReactFlow();

@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -16,7 +15,6 @@
 
     /* Linting */
     "strict": true,
-    "strictNullChecks": true, // Add this - fixes those strict rules
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -25,14 +23,17 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    /* Testing */
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": [
-    "src/**/*", // Include all src files
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx"
+    "src",
+    "**/*.ts",
+    "**/*.tsx",
+    "vite.config.ts",
+    "vitest.config.ts"
   ],
-  "exclude": ["node_modules", "dist"]
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
