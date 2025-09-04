@@ -48,7 +48,7 @@ const NodeLibrarySidebar: React.FC<SidebarProps> = ({ activeItem }) => {
   ];
 
   return (
-    <div className=' fixed p-1 top-80 min-h-fit max-h-[80vh] scale-120 ml-10 w-54 bg-[#1b333c]/50 backdrop-blur-md rounded-2xl border border-slate-700/50 z-40 overflow-y-auto'>
+    <div className=' fixed p-1 top-60 min-h-fit max-h-[80vh] scale-120 ml-10 w-54 bg-[#1b333c]/50 backdrop-blur-md rounded-2xl border border-slate-700/50 z-40 overflow-y-auto'>
       <div className='p-5 position-relative '>
         <img src='/media/logo.png' alt='Hermes Logo' className='w-45 h-25 ' />
       </div>

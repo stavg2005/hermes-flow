@@ -14,6 +14,19 @@ export const useGraphProcessing = () => {
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const ProcessFileInputs = (nodes: CustomNode[], signal: AbortSignal) => {
+    const fileinputs = nodes.filter(node => node.type === 'fileInputs');
+
+    fileinputs.forEach(node =>
+      ProcessorRegistry.executeProcess(
+        node.type as string,
+        node.id,
+        node.data,
+        signal
+      )
+    );
+  };
+
   const processGraph = useCallback(
     async (
       nodes: CustomNode[],
@@ -27,8 +40,9 @@ export const useGraphProcessing = () => {
 
       const clients = nodes.find(node => node.type === 'clients');
       if (!clients) throw new Error('no clients found');
+      console.log('bro how are you not throwing?' + clients);
       let currentNodeId: string | null = startNode.id;
-
+      ProcessFileInputs(nodes, signal);
       while (currentNodeId && !signal.aborted) {
         dispatch(graphProcessingActions.setCurrentNode(currentNodeId));
 
@@ -74,6 +88,7 @@ export const useGraphProcessing = () => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         dispatch(graphProcessingActions.setError(errorMessage));
+        throw error;
       }
     } finally {
       abortControllerRef.current = null;
