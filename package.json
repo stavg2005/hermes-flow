@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "start": "vite --host 0.0.0.0 --port 6000",
     "preview": "vite preview",
     "prepare": "husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -19,7 +20,9 @@
     "test": "vitest",
     "test:watch": "vitetest --watch",
     "test:coverage": "vitetest --coverage",
-    "test:ui": "vitetest --ui"
+    "test:ui": "vitetest --ui",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker-compose -f docker-compose.dev.yml down"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -40,6 +43,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.8.2",
+    "@tanstack/query-sync-storage-persister": "^5.87.1",
+    "@tanstack/react-query": "^5.87.1",
     "@xyflow/react": "^12.8.3",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",

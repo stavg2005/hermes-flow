@@ -15,6 +15,18 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     globals: true, // Enables global test functions without imports
   },
+  server:{
+host:'0.0.0.0',
+port:5173,
+watch:{
+  usePolling:true,
+  interval:100
+},
+hmr:{
+  host:'0.0.0.0',
+  port:5173
+}
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
