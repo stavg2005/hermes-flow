@@ -12,7 +12,7 @@ export class ConnectionValidator {
       this.validateHandles,
       this.validateConnectionLimits,
       this.validateDuplicates,
-      this.validateSemantics,
+      //this.validateSemantics,
     ];
 
     for (const validation of validations) {

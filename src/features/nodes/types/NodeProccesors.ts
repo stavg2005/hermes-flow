@@ -59,7 +59,7 @@ export class MixerProcessor implements NodeProcessor {
 }
 
 export class FileProcessor implements NodeProcessor {
-  readonly nodeType = 'FileInput';
+  readonly nodeType = 'fileInput';
 
   async process(
     nodeId: string,
@@ -68,7 +68,7 @@ export class FileProcessor implements NodeProcessor {
   ): Promise<void> {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     console.log(nodeData);
-    this.delay(1000, signal);
+    await this.delay(5000, signal);
   }
 
   private delay(ms: number, signal?: AbortSignal): Promise<void> {

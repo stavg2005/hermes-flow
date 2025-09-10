@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import FileDropdown from './FileDropdown';
 import { useOptions } from './hooks/useOptions';
+import { useAppSelector, GetProccecedNodeID } from '@/app/store';
 
 const MOCK_FILES = [
   'test1.wav',
@@ -48,6 +49,8 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id }) => {
   const [selectedFile, setSelectedFile] = useState('');
   const { updateNodeData } = useReactFlow();
   const recivedData = useOptions(id);
+  const currentProcessingNode = useAppSelector(GetProccecedNodeID);
+  const isProcessing = currentProcessingNode === id;
   const handleFileSelect = useCallback(
     (file: string) => {
       setSelectedFile(file);
@@ -70,7 +73,7 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id }) => {
   }, [recivedData])
 
   return (
-    <div className='relative bg-[#383434] rounded-2xl shadow-2xl border-4 border-[#383434] transition-all duration-200 min-w-[250px]'>
+    <div className={`relative bg-[#383434] rounded-2xl shadow-2xl border-4 border-[#383434] transition-all duration-200 min-w-[250px] ${isProcessing ? ' border-4 border-white' : ''}`} >
       <Handle {...OUTPUT_HANDLE_PROPS} />
 
       <Handle {...INPUT_HANDLE_PROPS} />
@@ -87,7 +90,7 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id }) => {
           files={MOCK_FILES}
         />
       </div>
-    </div>
+    </div >
   );
 };
 
