@@ -12,7 +12,7 @@ export class ConnectionValidator {
       this.validateHandles,
       this.validateConnectionLimits,
       this.validateDuplicates,
-      //this.validateSemantics,
+      this.validateSemantics,
     ];
 
     for (const validation of validations) {
@@ -184,41 +184,20 @@ export class ConnectionValidator {
     context: ConnectionContext
   ): ConnectionValidationResult {
     const { connection, sourceNode, targetNode, existingEdges } = context;
-    console.log(connection);
-    // Rule 1: Delay cannot connect to mixer if a fileInput is connected to the delay
-    if (sourceNode.type === 'delay' && targetNode.type === 'mixer') {
-      const hasFileInputConnected = existingEdges.some(
+
+    // Rule 1: FileInput cannot connect to mixer if a delay is connected to the fileInput
+    if (sourceNode.type === 'fileInput' && targetNode.type === 'mixer') {
+      const hasDelayConnected = existingEdges.some(
         edge =>
           edge.target === sourceNode.id &&
-          context.allNodes.find(node => node.id === edge.source)?.type ===
-            'fileInput'
+          context.allNodes.find(node => node.id === edge.source)?.type === 'delay'
       );
-
-      if (hasFileInputConnected) {
+      if (hasDelayConnected) {
         return {
           isValid: false,
           errorType: 'SEMANTIC_ERROR',
           message:
-            'Delay cannot connect to mixer when a file input is connected to it',
-        };
-      }
-    }
-
-    // Rule 2: FileInput cannot connect to delay UNLESS the delay is connected to mixer
-    if (sourceNode.type === 'fileInput' && targetNode.type === 'delay') {
-      const delayConnectedToMixer = existingEdges.some(
-        edge =>
-          edge.source === targetNode.id &&
-          context.allNodes.find(node => node.id === edge.target)?.type ===
-            'mixer'
-      );
-
-      if (delayConnectedToMixer) {
-        return {
-          isValid: false,
-          errorType: 'SEMANTIC_ERROR',
-          message:
-            'File input cant  connect to delay if the delay is connected to a mixer',
+            'File input cannot connect to mixer when a delay is connected to it',
         };
       }
     }
