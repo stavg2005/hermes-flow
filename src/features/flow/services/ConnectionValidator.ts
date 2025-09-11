@@ -183,14 +183,15 @@ export class ConnectionValidator {
   private validateSemantics(
     context: ConnectionContext
   ): ConnectionValidationResult {
-    const { connection, sourceNode, targetNode, existingEdges } = context;
+    const { sourceNode, targetNode, existingEdges } = context;
 
     // Rule 1: FileInput cannot connect to mixer if a delay is connected to the fileInput
     if (sourceNode.type === 'fileInput' && targetNode.type === 'mixer') {
       const hasDelayConnected = existingEdges.some(
         edge =>
           edge.target === sourceNode.id &&
-          context.allNodes.find(node => node.id === edge.source)?.type === 'delay'
+          context.allNodes.find(node => node.id === edge.source)?.type ===
+            'delay'
       );
       if (hasDelayConnected) {
         return {

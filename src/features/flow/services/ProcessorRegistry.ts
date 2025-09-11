@@ -5,7 +5,7 @@ import {
   NodeProcessor,
 } from '@/features/nodes/types/NodeProccesors';
 export class ProcessorRegistry {
-  private static processors = new Map<string, NodeProcessor>();
+  private static readonly processors = new Map<string, NodeProcessor>();
 
   static register(processor: NodeProcessor): void {
     this.processors.set(processor.nodeType, processor);

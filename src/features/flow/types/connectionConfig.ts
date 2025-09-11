@@ -87,13 +87,13 @@ export const NODE_CONNECTION_CONFIG: Record<NodeType, NodeConnectionConfig> = {
 
   delay: {
     outgoing: {
-      allowedTargets: new Set(['mixer','fileInput']),
+      allowedTargets: new Set(['mixer', 'fileInput']),
       maxConnections: 1,
       handles: new Set(['delay-output', 'fileInput']),
     },
     incoming: {
       allowedSources: new Set(['fileInput', 'mixer']),
-      maxConnections: 2,
+      maxConnections: 10,
       handles: new Set(['delay-input']),
     },
   },
