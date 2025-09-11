@@ -1,5 +1,5 @@
+import { memo, useCallback } from 'react';
 import { useDropdown } from './hooks/useDropdown.ts';
-import { memo, useCallback, useEffect } from 'react';
 
 interface FileDropdownProps {
   selectedFile: string;
@@ -89,7 +89,6 @@ const FileDropdown = memo<FileDropdownProps>(
                   aria-selected={selectedFile === file}
                 >
                   <span className='truncate'>{file}</span>
-                  <span className='text-xs text-gray-400 ml-2'>({index})</span>
                 </button>
               ))}
 

@@ -4,8 +4,8 @@ import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import FileDropdown from './FileDropdown';
 import {
-  useAvailableFilesWithEmitter,
   notifyFlowUpdate,
+  useAvailableFilesWithEmitter,
 } from './hooks/useAvailabeFiles';
 import { useOptions } from './hooks/useOptions';
 
@@ -79,6 +79,10 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
       formatedData.fileName !== selectedFile &&
       formatedData.fileName !== 'unknown'
     ) {
+      console.log(
+        '🔄 Updating selected file from data:',
+        formatedData.fileName
+      );
       setSelectedFile(formatedData.fileName);
     }
   }, [data, selectedFile]);
@@ -89,6 +93,12 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
     >
       <Handle {...OUTPUT_HANDLE_PROPS} />
       <Handle {...INPUT_HANDLE_PROPS} />
+
+      <div className='px-4 pt-3 pb-2'>
+        <h3 className='text-white font-bold italic font-inter text-sm'>
+          File Input
+        </h3>
+      </div>
 
       <div className='px-4 pb-3'>
         <FileDropdown
