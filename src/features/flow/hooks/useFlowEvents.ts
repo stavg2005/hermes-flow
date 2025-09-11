@@ -10,7 +10,7 @@ import {
   getConnectionErrorMessage,
   isValidConnection,
 } from '../services/ConnectionValidation.ts';
-
+import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 export const useFlowHandlers = () => {
   const reactFlowInstance = useReactFlow();
   const nodes = useNodes();
@@ -22,10 +22,9 @@ export const useFlowHandlers = () => {
     (connection: Connection) => {
       if (isProcessing) return;
 
-      console.log('Connecting:', nodes);
-
       if (isValidConnection(connection, nodes, edges)) {
         setEdges(eds => addEdge(connection, eds));
+        notifyFlowUpdate();
       } else {
         const errorMessage = getConnectionErrorMessage(
           connection,

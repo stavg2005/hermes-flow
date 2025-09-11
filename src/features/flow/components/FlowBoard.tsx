@@ -15,15 +15,14 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import React, { useState,useEffect } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 import { GetIsRunning, useAppSelector } from '@/app/store';
 import { useFlowHandlers } from '../hooks/useFlowEvents.ts';
 
 const initialNodes: CustomNode[] = [];
 const initialEdges: CustomEdge[] = [];
 const STORAGE_KEY = 'reactflow-workspace';
-
 
 const FlowBoard: React.FC = () => {
   const isProcessing = useAppSelector(GetIsRunning);
@@ -35,21 +34,22 @@ const FlowBoard: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isLoading, setIsLoading] = useState(true);
 
-
-useEffect(() => {
+  useEffect(() => {
     const loadWorkflow = () => {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const { nodes: savedNodes, edges: savedEdges, viewport } = JSON.parse(saved);
+          const {
+            nodes: savedNodes,
+            edges: savedEdges,
+            viewport,
+          } = JSON.parse(saved);
           setNodes(savedNodes || []);
           setEdges(savedEdges || []);
-          console.log('Workflow loaded from storage');
         } else {
           // Use initial data if nothing saved
           setNodes(initialNodes);
           setEdges(initialEdges);
-          console.log('Using initial workflow');
         }
       } catch (error) {
         console.error('Error loading workflow:', error);
@@ -85,7 +85,6 @@ useEffect(() => {
       return () => clearTimeout(timeoutId);
     }
   }, [nodes, edges, isLoading]);
-
 
   return (
     <div

@@ -16,7 +16,6 @@ const TopBar: React.FC<TopBarProps> = ({ onTransmit }) => {
   // Handle notifications as a side effect
 
   const handleRun = useCallback(async () => {
-    console.log('in handle run');
     try {
       await startProcessing();
       toast.success('Processing completed successfully');

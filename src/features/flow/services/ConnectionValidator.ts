@@ -4,6 +4,11 @@ import {
   NODE_CONNECTION_CONFIG,
   NodeType,
 } from '@/features/flow/types/connectionConfig';
+import {
+  FileInputNodeData,
+  MixerNodeData,
+} from '@/features/nodes/types/NodeData';
+
 export class ConnectionValidator {
   validate(context: ConnectionContext): ConnectionValidationResult {
     const validations = [
@@ -159,24 +164,23 @@ export class ConnectionValidator {
   private validateDuplicates(
     context: ConnectionContext
   ): ConnectionValidationResult {
-    const { connection, existingEdges } = context;
-
-    const isDuplicate = existingEdges.some(
-      edge =>
-        edge.source === connection.source &&
-        edge.target === connection.target &&
-        edge.sourceHandle === connection.sourceHandle &&
-        edge.targetHandle === connection.targetHandle
-    );
-
-    if (isDuplicate) {
-      return {
-        isValid: false,
-        errorType: 'DUPLICATE_CONNECTION',
-        message: 'This connection already exists',
-      };
+    const { sourceNode, targetNode } = context;
+    if (sourceNode.type === 'fileInput' && targetNode.type === 'mixer') {
+      const mixerdata = targetNode.data as MixerNodeData;
+      const filedata = sourceNode.data as FileInputNodeData;
+      const hasDuplicate = mixerdata.files.some(
+        file => file.fileName === filedata.fileName
+      );
+      if (hasDuplicate) {
+        return {
+          isValid: false,
+          errorType: 'DUPLICATE_CONNECTION',
+          message: 'Mixer has fileinput already connected with the same file',
+        };
+      } else {
+        return { isValid: true };
+      }
     }
-
     return { isValid: true };
   }
 

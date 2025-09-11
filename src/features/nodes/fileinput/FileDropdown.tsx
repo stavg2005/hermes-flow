@@ -1,5 +1,5 @@
 import { useDropdown } from './hooks/useDropdown.ts';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 
 interface FileDropdownProps {
   selectedFile: string;
@@ -46,6 +46,9 @@ const FileDropdown = memo<FileDropdownProps>(
             {isLoading ? 'Loading...' : selectedFile || 'Choose file'}
           </span>
 
+          {/* Debug info - remove this later */}
+          <span className='text-xs text-gray-400 ml-2'>({files.length})</span>
+
           <svg
             className={`w-4 h-4 ml-2 transition-transform duration-200 flex-shrink-0 ${
               isOpen ? 'rotate-180' : ''
@@ -71,9 +74,14 @@ const FileDropdown = memo<FileDropdownProps>(
             aria-label='File selection'
           >
             <div className='py-1'>
-              {files.map(file => (
+              {/* Debug info */}
+              <div className='px-3 py-1 text-xs text-gray-500 border-b border-gray-600'>
+                Available: {files.length} files
+              </div>
+
+              {files.map((file, index) => (
                 <button
-                  key={file}
+                  key={`${file}-${index}`} // Use index to ensure uniqueness
                   onClick={() => handleFileSelect(file)}
                   onKeyDown={e => handleKeyDown(e, file)}
                   className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-[#383434] focus:bg-[#383434] focus:outline-none'
@@ -81,8 +89,15 @@ const FileDropdown = memo<FileDropdownProps>(
                   aria-selected={selectedFile === file}
                 >
                   <span className='truncate'>{file}</span>
+                  <span className='text-xs text-gray-400 ml-2'>({index})</span>
                 </button>
               ))}
+
+              {files.length === 0 && (
+                <div className='px-3 py-2 text-gray-400 text-sm'>
+                  No files available
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -90,5 +105,6 @@ const FileDropdown = memo<FileDropdownProps>(
     );
   }
 );
+
 FileDropdown.displayName = 'FileDropdown';
 export default FileDropdown;

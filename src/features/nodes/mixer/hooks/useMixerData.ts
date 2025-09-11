@@ -15,6 +15,9 @@ export const useMixerData = (nodeId: string) => {
   const { updateNodeData: updateNodeDataReactFlow } = useReactFlow();
 
   const processedData = useMemo(() => {
+    console.log(
+      'broooo i got updated with ' + JSON.stringify(connectedNodesData)
+    );
     const fileInputNodes = connectedNodesData.filter(
       nodeData => nodeData?.type === 'fileInput'
     );
@@ -26,7 +29,6 @@ export const useMixerData = (nodeId: string) => {
     }));
   }, [connectedNodesData]);
 
-  // Stable update function that updates both React Flow and Redux
   const updateMixerData = useCallback(
     (data: FileInputNodeData[]) => {
       const mixerData: MixerNodeData = {
