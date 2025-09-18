@@ -40,16 +40,8 @@ export const useFileOperations = () => {
     }
   }, [nodes, edges]);
 
-  const loadGraph = useCallback(() => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.json';
-    fileInput.style.display = 'none';
-
-    fileInput.onchange = async (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const file = target.files?.[0];
-
+  const loadGraph = useCallback(
+    async (file: File) => {
       if (!file) {
         toast.error('No file selected');
         return;
@@ -79,13 +71,9 @@ export const useFileOperations = () => {
       } catch (parseError) {
         toast.error(`Error parsing JSON file: ${parseError}`);
       }
-
-      document.body.removeChild(fileInput);
-    };
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
-  }, [setNodes, setEdges]);
+    },
+    [setNodes, setEdges]
+  );
 
   const newGraph = useCallback(() => {
     setNodes([]);

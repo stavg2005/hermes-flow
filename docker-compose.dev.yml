@@ -7,18 +7,52 @@ services:
       dockerfile: Dockerfile.dev
     container_name: vite-react-dev
     ports:
-      - "6000:6000"
+      - '5173:5173'
     volumes:
       - .:/app
-      - /app/node_modules  # Prevent node_modules overwrite
+      - /app/node_modules # Prevent node_modules overwrite
     environment:
       - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes
-      - WATCHPACK_POLLING=true    # Additional polling support
+      - CHOKIDAR_USEPOLLING=true # Enable polling for file changes
+      - WATCHPACK_POLLING=true # Additional polling support
+      # MinIO environment variables for your React app
+      - REACT_APP_MINIO_ENDPOINT=minio
+      - REACT_APP_MINIO_PORT=9000
+      - REACT_APP_MINIO_ACCESS_KEY=minioadmin
+      - REACT_APP_MINIO_SECRET_KEY=minioadmin123
+      - REACT_APP_MINIO_BUCKET=workflows
+      - REACT_APP_MINIO_USE_SSL=false
     networks:
       - react-network
+    depends_on:
+      - minio
     stdin_open: true
     tty: true
+
+  # MinIO service
+  minio:
+    image: minio/minio:latest
+    container_name: workflow-minio
+    ports:
+      - '9000:9000' # MinIO API
+      - '9001:9001' # MinIO Console UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_DOMAIN: localhost
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - react-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+volumes:
+  minio-data:
 
 networks:
   react-network:

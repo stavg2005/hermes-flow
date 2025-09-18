@@ -1,10 +1,10 @@
 import { useFileOperations } from '../hooks/useFileOperations';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import WorkflowBar from './WorkflowsBar';
+import WorkflowBar from './WorkflowBAR/WorkflowsBar';
 
 export const FileControls = () => {
-  const { saveGraph, loadGraph, newGraph } = useFileOperations();
+  const { saveGraph, newGraph } = useFileOperations();
   const [LoaderOpen, setLoaderOpen] = useState(false);
   const buttonClass =
     'text-slate-300 hover:text-white transition-colors text-sm font-medium';
@@ -16,18 +16,22 @@ export const FileControls = () => {
           New
         </button>
         <button onClick={saveGraph} className={buttonClass}>
-          Save
+          Download
         </button>
-        <button onClick={() => setLoaderOpen(!LoaderOpen)} className={buttonClass}>
+        <button
+          onClick={() => setLoaderOpen(!LoaderOpen)}
+          className={buttonClass}
+        >
           Load
         </button>
       </div>
 
       {/* Portal renders WorkflowBar outside the normal DOM hierarchy */}
-      {LoaderOpen && createPortal(
-        <WorkflowBar onClose={() => setLoaderOpen(false)} />,
-        document.body
-      )}
+      {LoaderOpen &&
+        createPortal(
+          <WorkflowBar onClose={() => setLoaderOpen(false)} />,
+          document.body
+        )}
     </>
   );
 };
