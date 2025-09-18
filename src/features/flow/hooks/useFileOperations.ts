@@ -6,7 +6,7 @@ export const useFileOperations = () => {
   const nodes = useNodes();
   const edges = useEdges();
   const { setNodes, setEdges } = useReactFlow();
-
+  const STORAGE_KEY = 'reactflow-workspace';
   const saveGraph = useCallback(() => {
     try {
       const graphData = {
@@ -78,6 +78,13 @@ export const useFileOperations = () => {
   const newGraph = useCallback(() => {
     setNodes([]);
     setEdges([]);
+
+    const workflow = {
+      nodes: [],
+      edges: [],
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(workflow));
     toast.success('New graph created');
   }, [setNodes, setEdges]);
 

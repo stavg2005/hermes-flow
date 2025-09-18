@@ -1,5 +1,4 @@
 import { FC, useState } from 'react';
-import { useFileOperations } from './../../hooks/useFileOperations';
 
 interface WorkflowItemProps {
   workflow: string;
@@ -8,7 +7,6 @@ interface WorkflowItemProps {
 }
 
 const WorkflowItem: FC<WorkflowItemProps> = ({ workflow, index, onDelete }) => {
-  const { loadGraph } = useFileOperations();
   const [loading, setLoading] = useState(false);
 
   const handleLoadWorkflow = async () => {

@@ -1,6 +1,7 @@
 // Updated useFlowHandlers with debugging
 import { GetIsRunning, useAppSelector } from '@/app/store';
 import { NodeType } from '@/features/flow/types/connectionConfig';
+import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 import { createDefaultNodeData } from '@/features/nodes/types/nodeDataFactory';
 import type { Connection, OnConnect } from '@xyflow/react';
 import { addEdge, useEdges, useNodes, useReactFlow } from '@xyflow/react';
@@ -10,7 +11,6 @@ import {
   getConnectionErrorMessage,
   isValidConnection,
 } from '../services/ConnectionValidation.ts';
-import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 export const useFlowHandlers = () => {
   const reactFlowInstance = useReactFlow();
   const nodes = useNodes();
@@ -56,7 +56,7 @@ export const useFlowHandlers = () => {
       event.preventDefault();
 
       const nodeType = event.dataTransfer.getData('application/reactflow');
-
+      console.log('nodeType ' + nodeType);
       if (!nodeType) {
         toast.error('No node type found');
         return;
@@ -64,6 +64,16 @@ export const useFlowHandlers = () => {
 
       if (!reactFlowInstance) {
         toast.error('Flow instance not available');
+        return;
+      }
+
+      // Use reactFlowInstance.getNodes() instead of the stale nodes hook
+      const currentNodes = reactFlowInstance.getNodes();
+      if (
+        nodeType === 'clients' &&
+        currentNodes.some(node => node.type === 'clients')
+      ) {
+        toast.error('Client node already present');
         return;
       }
 

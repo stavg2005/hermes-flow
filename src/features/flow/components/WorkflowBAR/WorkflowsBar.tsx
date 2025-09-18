@@ -13,6 +13,7 @@ const WorkflowBar: FC<WorkflowBarProps> = ({ onClose }) => {
   const mock_workflows: string[] = ['Example 1', 'Example 2', 'Example 3'];
   const [workflows, setWorkflows] = useState<string[]>(mock_workflows);
 
+  //basic for needs minio integraion
   const handleAddWorkflow = (workflowName: string, content: any) => {
     setWorkflows(prev => [...prev, workflowName]);
     console.log('Added workflow:', workflowName, 'with content:', content);
