@@ -14,8 +14,12 @@ export const GraphTraversalService = {
     }
 
     // Create a copy and sort to avoid mutating the original array
-    const sortedNodes = [...validStartNodes].sort(this.compareNodePositions);
-    return sortedNodes[0];
+    const topLeft = validStartNodes.reduce((best, current) => {
+      const bestDistance = best.position.x + best.position.y;
+      const currentDistance = current.position.x + current.position.y;
+      return currentDistance < bestDistance ? current : best;
+    });
+    return topLeft;
   },
 
   /**

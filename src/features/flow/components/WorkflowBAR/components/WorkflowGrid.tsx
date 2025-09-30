@@ -1,17 +1,12 @@
 import { FC } from 'react';
 import AddWorkflowButton from './AddWorkflowButton';
 import WorkflowItem from './WorkflowItem';
-interface WorkflowGridProps {
-  workflows: string[];
-  onAddWorkflow: () => void;
-  onDeleteWorkflow: (index: number) => void;
-  isBlurred: boolean;
-}
+import { FileMetadata } from '../hooks/useMinIOOperations';
 
 interface WorkflowGridProps {
-  workflows: string[];
+  workflows: FileMetadata[];
   onAddWorkflow: () => void;
-  onDeleteWorkflow: (index: number) => void;
+  onDeleteWorkflow: (filename: string) => void;
   isBlurred: boolean;
   loading?: boolean;
 }
@@ -34,7 +29,7 @@ const WorkflowGrid: FC<WorkflowGridProps> = ({
       <>
         {workflows.map((workflow, index) => (
           <WorkflowItem
-            key={workflow}
+            key={workflow.fileName}
             workflow={workflow}
             index={index}
             onDelete={onDeleteWorkflow}

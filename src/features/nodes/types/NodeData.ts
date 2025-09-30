@@ -17,7 +17,7 @@ export interface FileOptionsNodeData extends Record<string, unknown> {
   //future options
 }
 
-export interface ClientData {
+export interface ClientData extends Record<string, unknown> {
   id: string;
   name: string;
   ip: string;
@@ -25,4 +25,8 @@ export interface ClientData {
   isSelected?: boolean;
   onUpdate?: (updatedData: Partial<ClientData>) => void;
   onRemove?: () => void;
+}
+
+export interface ClientNodeData extends Record<string, unknown> {
+  clients: ClientData[];
 }

@@ -1,11 +1,15 @@
-import { useClientsData } from './hooks/useClientsData';
-import { ClientData } from '../types/NodeData.ts';
+import { GetIsRunning, useAppSelector } from '@/app/store';
 import { NodeProps } from '@xyflow/react';
+import { ClientData } from '../types/NodeData.ts';
 import { AddClientButton } from './AddClientButton';
 import ClientItem from './ClientItem';
-const ClientsNode: React.FC<NodeProps> = ({ id }) => {
-  const { clients, addClient, updateClient, removeClient } = useClientsData(id);
-
+import { useClientsData } from './hooks/useClientsData';
+const ClientsNode: React.FC<NodeProps> = ({ id, data }) => {
+  const { clients, addClient, updateClient, removeClient } = useClientsData(
+    id,
+    data
+  );
+  const isProcessing = useAppSelector(GetIsRunning);
   return (
     <div className='bg-[#373333] rounded-2xl p-4 w-[300px]'>
       <div className='text-center mb-4'>
@@ -21,10 +25,11 @@ const ClientsNode: React.FC<NodeProps> = ({ id }) => {
             client={client}
             onUpdate={updates => updateClient(client.id, updates)}
             onRemove={() => removeClient(client.id)}
+            isProcessing={isProcessing}
           />
         ))}
 
-        <AddClientButton onClick={addClient} />
+        <AddClientButton onClick={addClient} disabled={isProcessing} />
       </div>
     </div>
   );

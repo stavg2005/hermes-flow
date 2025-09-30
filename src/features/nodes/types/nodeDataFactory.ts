@@ -1,12 +1,12 @@
+import { NodeType } from '@/features/flow/types/connectionConfig';
 import {
+  ClientData,
   DelayNodeData,
-  MixerNodeData,
   FileInputNodeData,
   FileOptionsNodeData,
+  MixerNodeData,
 } from '@/features/nodes/types/NodeData';
-import { NodeType } from '@/features/flow/types/connectionConfig';
 
-// Option 1: As a utility function (recommended if no React state needed)
 export const createDefaultNodeData = (
   type: NodeType
 ): Record<string, unknown> => {
@@ -19,6 +19,8 @@ export const createDefaultNodeData = (
       return createDefaultInputData();
     case 'fileOptions':
       return createDefaultOptionsData();
+    case 'clients':
+      return createDefaultClientsData();
     default:
       return createUnknownData();
   }
@@ -42,6 +44,12 @@ const createDefaultOptionsData = (): FileOptionsNodeData => ({
   gain: 1,
 });
 
+const createDefaultClientsData = (): ClientData => ({
+  id: '-1',
+  name: 'unknown',
+  ip: '-1',
+  port: '-1',
+});
 const createUnknownData = (): Record<string, unknown> => ({
   unknown: 'unknown',
 });

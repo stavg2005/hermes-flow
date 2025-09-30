@@ -41,15 +41,14 @@ export const useFileOperations = () => {
   }, [nodes, edges]);
 
   const loadGraph = useCallback(
-    async (file: File) => {
+    async (file: any) => {
       if (!file) {
         toast.error('No file selected');
         return;
       }
 
       try {
-        const fileContent = await file.text();
-        const graphData = JSON.parse(fileContent);
+        const graphData = file;
 
         if (!graphData.nodes || !graphData.edges) {
           throw new Error('Invalid file format: missing nodes or edges');
@@ -69,6 +68,7 @@ export const useFileOperations = () => {
 
         toast.success('Graph loaded successfully');
       } catch (parseError) {
+        console.log(file);
         toast.error(`Error parsing JSON file: ${parseError}`);
       }
     },

@@ -1,11 +1,13 @@
-import { useFileOperations } from '../hooks/useFileOperations';
-import { useState } from 'react';
+import { selectIsOpen, useAppDispatch } from '@/app/store';
+import { WorkflowBarActions } from '@/store/slices/WorkflowBarSlice';
 import { createPortal } from 'react-dom';
-import WorkflowBar from './WorkflowBAR/WorkflowsBar';
-
+import { useSelector } from 'react-redux';
+import { useFileOperations } from '../hooks/useFileOperations';
+import WorkflowBar from './WorkflowBAR/components/WorkflowsBar';
 export const FileControls = () => {
   const { saveGraph, newGraph } = useFileOperations();
-  const [LoaderOpen, setLoaderOpen] = useState(false);
+  const LoaderOpen = useSelector(selectIsOpen);
+  const dispatch = useAppDispatch();
   const buttonClass =
     'text-slate-300 hover:text-white transition-colors text-sm font-medium';
 
@@ -19,7 +21,7 @@ export const FileControls = () => {
           Download
         </button>
         <button
-          onClick={() => setLoaderOpen(!LoaderOpen)}
+          onClick={() => dispatch(WorkflowBarActions.OpenModel())}
           className={buttonClass}
         >
           Load
@@ -29,7 +31,9 @@ export const FileControls = () => {
       {/* Portal renders WorkflowBar outside the normal DOM hierarchy */}
       {LoaderOpen &&
         createPortal(
-          <WorkflowBar onClose={() => setLoaderOpen(false)} />,
+          <WorkflowBar
+            onClose={() => dispatch(WorkflowBarActions.CloseModel())}
+          />,
           document.body
         )}
     </>

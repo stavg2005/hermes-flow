@@ -3,9 +3,14 @@ import { useReactFlow } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';
 
-export const useClientsData = (nodeId: string) => {
+export const useClientsData = (
+  nodeId: string,
+  data: Record<string, unknown>
+) => {
   const { updateNodeData } = useReactFlow();
-  const [clients, setClients] = useState<ClientData[]>([]);
+  const [clients, setClients] = useState<ClientData[]>(
+    (data?.clients as ClientData[]) || []
+  );
 
   const updateNodeClients = useCallback(
     (newClients: ClientData[]) => {
