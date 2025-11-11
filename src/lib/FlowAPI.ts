@@ -20,7 +20,7 @@ export interface UploadResponse {
 }
 export const FlowAPI = {
   PostFlow: async (flow: JSON): Promise<PostFlowResponse> => {
-    const response = await api.post<PostFlowResponse>(`/flow`, {
+    const response = await api.post<PostFlowResponse>(`/transmit/`, {
       flow,
     });
 

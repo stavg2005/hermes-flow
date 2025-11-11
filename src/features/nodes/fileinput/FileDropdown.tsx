@@ -1,17 +1,19 @@
-import { memo, useCallback } from 'react';
+import FileUploadModal from '@/features/flow/components/WorkflowBAR/components/FileUploadModal.tsx';
+import { FileMetadata } from '@/features/flow/components/WorkflowBAR/hooks/useMinIOOperations.ts';
+import { memo, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDropdown } from './hooks/useDropdown.ts';
-
 interface FileDropdownProps {
   selectedFile: string;
   onFileSelect: (file: string) => void;
-  files: string[];
+  files: FileMetadata[];
   isLoading?: boolean;
 }
 
 const FileDropdown = memo<FileDropdownProps>(
   ({ selectedFile, onFileSelect, files, isLoading = false }) => {
     const { isOpen, setIsOpen, dropdownRef } = useDropdown();
-
+    const [isUploadOpen, setUploadOpen] = useState(false);
     const handleFileSelect = useCallback(
       (file: string) => {
         onFileSelect(file);
@@ -82,16 +84,22 @@ const FileDropdown = memo<FileDropdownProps>(
               {files.map((file, index) => (
                 <button
                   key={`${file}-${index}`} // Use index to ensure uniqueness
-                  onClick={() => handleFileSelect(file)}
-                  onKeyDown={e => handleKeyDown(e, file)}
+                  onClick={() => handleFileSelect(file.fileName)}
+                  onKeyDown={e => handleKeyDown(e, file.fileName)}
                   className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-[#383434] focus:bg-[#383434] focus:outline-none'
                   role='option'
-                  aria-selected={selectedFile === file}
+                  aria-selected={selectedFile === file.fileName}
                 >
-                  <span className='truncate'>{file}</span>
+                  <span className='truncate'>{file.fileName}</span>
                 </button>
               ))}
-
+              <button
+                onClick={() => setUploadOpen(true)}
+                className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-[#383434] focus:bg-[#383434] focus:outline-none'
+                role='option'
+              >
+                <span className='truncate'>Upload file</span>
+              </button>
               {files.length === 0 && (
                 <div className='px-3 py-2 text-gray-400 text-sm'>
                   No files available
@@ -100,6 +108,18 @@ const FileDropdown = memo<FileDropdownProps>(
             </div>
           </div>
         )}
+
+        {isUploadOpen &&
+          createPortal(
+            <FileUploadModal
+              isVisible={isUploadOpen}
+              onClose={() => {
+                setUploadOpen(false);
+              }}
+              isJson={false}
+            />,
+            document.body
+          )}
       </div>
     );
   }

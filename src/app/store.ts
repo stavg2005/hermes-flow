@@ -3,10 +3,12 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
 import graphReducer from '@/store/slices/graphProcessingSlice';
 import BarReducer from '@/store/slices/WorkflowBarSlice';
+import AudioFileReducer from '@/store/slices/AudioFilesSlice';
 export const store = configureStore({
   reducer: {
     graph: graphReducer,
     WorkflowBar: BarReducer,
+    AudioFiles: AudioFileReducer,
   },
 });
 
@@ -27,3 +29,7 @@ export const selectFilesMetaData = (state: RootState) =>
   state.WorkflowBar.filesMetaData;
 export const selectDataFetched = (state: RootState) =>
   state.WorkflowBar.dataFetched;
+export const selectAudioFilesMetaData = (state: RootState) =>
+  state.AudioFiles.files;
+export const selectDataFetchedAudio = (state: RootState) =>
+  state.AudioFiles.dataFetched;

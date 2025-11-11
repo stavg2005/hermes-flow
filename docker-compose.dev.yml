@@ -1,34 +1,6 @@
 version: '3.8'
 
 services:
-  react-app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: vite-react-dev
-    ports:
-      - '5173:5173'
-    volumes:
-      - .:/app
-      - /app/node_modules # Prevent node_modules overwrite
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true # Enable polling for file changes
-      - WATCHPACK_POLLING=true # Additional polling support
-      # MinIO environment variables for your React app
-      - REACT_APP_MINIO_ENDPOINT=minio
-      - REACT_APP_MINIO_PORT=9000
-      - REACT_APP_MINIO_ACCESS_KEY=minioadmin
-      - REACT_APP_MINIO_SECRET_KEY=minioadmin123
-      - REACT_APP_MINIO_BUCKET=workflows
-      - REACT_APP_MINIO_USE_SSL=false
-    networks:
-      - react-network
-    depends_on:
-      - minio
-    stdin_open: true
-    tty: true
-
   # MinIO service
   minio:
     image: minio/minio:latest

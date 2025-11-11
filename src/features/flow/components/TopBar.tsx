@@ -1,18 +1,20 @@
 import { useGraphProcessing } from '@/features/flow/hooks/useGraphProcessing';
+import { usePostFlow } from '@/hooks/UseFlowAPI';
+import { useStore } from '@xyflow/react';
 import { Radio } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { FileControls } from './FileControls';
 import { ProcessingControls } from './ProcessingControls';
 
-interface TopBarProps {
-  onTransmit?: () => void;
-}
-
-const TopBar: React.FC<TopBarProps> = ({ onTransmit }) => {
+const TopBar: React.FC = () => {
   const { isProcessing, startProcessing, stopProcessing } =
     useGraphProcessing();
 
+  const nodes = useStore(s => s.nodes);
+  const edges = useStore(s => s.edges);
+
+  const postFlow = usePostFlow();
   // Handle notifications as a side effect
 
   const handleRun = useCallback(async () => {
@@ -40,7 +42,7 @@ const TopBar: React.FC<TopBarProps> = ({ onTransmit }) => {
         />
 
         <button
-          onClick={onTransmit}
+          onClick={() => postFlow.mutateAsync({ nodes, edges })}
           className='flex items-center gap-2 px-4 py-2 bg-[#193643] hover:bg-[#214e62] text-white rounded-lg transition-colors text-sm font-medium border border-[#ecca93]'
         >
           <Radio className='w-4 h-4' />

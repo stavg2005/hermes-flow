@@ -1,15 +1,14 @@
 // hooks/useFileUploadModal.ts
-import { useState, useRef } from 'react';
+import { useUploadWorkflowMutation } from '@/hooks/UseFlowAPI';
+import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useMinIOOperations } from './useMinIOOperations';
-
 export const useFileUploadModal = (onClose: () => void) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadToMinIO } = useMinIOOperations();
+  const uploadMutation = useUploadWorkflowMutation();
 
-  const uploadFile = async (file: File) => {
+  const uploadJsonFile = async (file: File) => {
     setIsUploading(true);
     try {
       // Validate JSON
@@ -17,7 +16,7 @@ export const useFileUploadModal = (onClose: () => void) => {
       JSON.parse(text);
 
       // Upload
-      await uploadToMinIO(file);
+      await uploadMutation.mutateAsync(file);
 
       // Close on success
       onClose();
@@ -29,11 +28,29 @@ export const useFileUploadModal = (onClose: () => void) => {
     }
   };
 
+  const uploadAudioFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      // Upload
+      await uploadMutation.mutateAsync(file);
+
+      // Close on success
+      onClose();
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Error: Invalid audio file format');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // File input handlers
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type === 'application/json') {
-      await uploadFile(file);
+    if (file?.type === 'application/json') {
+      await uploadJsonFile(file);
+    } else if (file?.name?.endsWith('.wav')) {
+      await uploadAudioFile(file);
     } else {
       toast.error('Please select a valid JSON file');
     }
@@ -54,11 +71,10 @@ export const useFileUploadModal = (onClose: () => void) => {
     if (isUploading) return;
 
     const file = e.dataTransfer.files?.[0];
-    if (
-      file &&
-      (file.type === 'application/json' || file.name.endsWith('.json'))
-    ) {
-      await uploadFile(file);
+    if (file?.type === 'application/json' || file?.name?.endsWith('.json')) {
+      await uploadJsonFile(file);
+    } else if (file?.name?.endsWith('.wav')) {
+      await uploadAudioFile(file);
     } else {
       toast.error('Please drop a valid JSON file');
     }

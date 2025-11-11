@@ -1,92 +1,45 @@
-// useAvailableFiles.ts
-import { useReactFlow } from '@xyflow/react';
-import { useEffect, useState } from 'react';
+// hooks/useAvailableFiles.ts
+import { useStore, Edge } from '@xyflow/react';
+import { useMemo } from 'react';
+import type { FileMetadata } from '@/features/flow/components/WorkflowBAR/hooks/useMinIOOperations';
 
-const MOCK_FILES = [
-  'test1.wav',
-  'test2.wav',
-  'test3.wav',
-  'test4.wav',
-  'test5.wav',
-];
-
-// Alternative: Use a global event emitter approach
-class FlowUpdateEmitter {
-  private listeners: (() => void)[] = [];
-
-  subscribe(callback: () => void) {
-    this.listeners.push(callback);
-    return () => {
-      this.listeners = this.listeners.filter(cb => cb !== callback);
-    };
-  }
-
-  emit() {
-    this.listeners.forEach(callback => callback());
-  }
+function getConnectedMixerIds(nodeId: string, edges: Edge[]): string[] {
+  const outgoing = edges.filter(e => e.source === nodeId).map(e => e.target);
+  // You may have multiple mixers downstream; we treat the union
+  return Array.from(new Set(outgoing));
 }
 
-const flowUpdateEmitter = new FlowUpdateEmitter();
-
-// Call this whenever you make changes to the flow
-export const notifyFlowUpdate = () => {
-  flowUpdateEmitter.emit();
-};
-
-export const useAvailableFilesWithEmitter = (
+export function useAvailableFilesForMixers(
   nodeId: string,
-  currentFile: string
-) => {
-  const { getNodes, getEdges } = useReactFlow();
-  const [, forceUpdate] = useState({});
+  files: FileMetadata[]
+) {
+  const nodes = useStore(s => s.nodes);
+  const edges = useStore(s => s.edges);
 
-  useEffect(() => {
-    const unsubscribe = flowUpdateEmitter.subscribe(() => {
-      console.log(
-        '📡 Received flow update notification for node:',
-        nodeId.slice(-4)
-      );
-      forceUpdate({});
-    });
+  return useMemo(() => {
+    // 1) Which mixers does THIS fileInput feed?
+    const mixerIds = getConnectedMixerIds(nodeId, edges);
 
-    return unsubscribe;
-  }, [nodeId]);
+    // If not connected to any mixer, all files are available.
+    if (mixerIds.length === 0) return files;
 
-  const nodes = getNodes();
-  const edges = getEdges();
-
-  const outgoingEdges = edges.filter(edge => edge.source === nodeId);
-  const connectedMixers = outgoingEdges
-    .map(edge => nodes.find(node => node.id === edge.target))
-    .filter(
-      (node): node is NonNullable<typeof node> =>
-        node !== undefined && node.type === 'mixer'
-    );
-
-  const usedFiles = new Set<string>();
-
-  for (const mixer of connectedMixers) {
-    const mixerIncomingEdges = edges.filter(edge => edge.target === mixer.id);
-    const connectedFileNodes = mixerIncomingEdges
-      .map(edge => nodes.find(node => node.id === edge.source))
-      .filter(
-        (node): node is NonNullable<typeof node> =>
-          node !== undefined && node.type === 'fileInput' && node.id !== nodeId
-      );
-
-    for (const node of connectedFileNodes) {
-      const fileName = node.data?.fileName;
-      if (
-        typeof fileName === 'string' &&
-        fileName.length > 0 &&
-        fileName !== 'unknown'
-      ) {
-        usedFiles.add(fileName);
+    // 2) Gather all FileInputs that also feed any of those mixers (siblings)
+    const siblings: string[] = [];
+    for (const mixerId of mixerIds) {
+      const incoming = edges.filter(e => e.target === mixerId);
+      for (const e of incoming) {
+        const n = nodes.find(n => n.id === e.source);
+        if (!n) continue;
+        if (n.type === 'fileInput' && n.id !== nodeId) {
+          const name = n.data?.fileName as unknown;
+          if (typeof name === 'string' && name && name !== 'unknown') {
+            siblings.push(name);
+          }
+        }
       }
     }
-  }
 
-  const availableFiles = MOCK_FILES.filter(file => !usedFiles.has(file));
-
-  return availableFiles;
-};
+    const used = new Set(siblings);
+    return files.filter(f => !used.has(f.fileName));
+  }, [nodeId, nodes, edges, files]);
+}

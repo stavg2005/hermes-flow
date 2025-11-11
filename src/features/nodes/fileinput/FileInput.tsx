@@ -1,15 +1,11 @@
 import { GetProccecedNodeID, useAppSelector } from '@/app/store';
-import { FileInputNodeData } from '@/features/nodes/types/NodeData';
+import { useAudioFilesQuery } from '@/hooks/UseFlowAPI';
 import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
-import { useCallback, useEffect, useState } from 'react';
+import clsx from 'clsx';
 import FileDropdown from './FileDropdown';
-import {
-  notifyFlowUpdate,
-  useAvailableFilesWithEmitter,
-} from './hooks/useAvailabeFiles';
-import { useOptions } from './hooks/useOptions';
+import { useAvailableFilesForMixers } from './hooks/useAvailabeFiles';
 
-const OUTPUT_HANDLE_PROPS = {
+const OUTPUT = {
   id: 'file-output',
   type: 'source' as const,
   position: Position.Right,
@@ -24,8 +20,7 @@ const OUTPUT_HANDLE_PROPS = {
     border: 'none',
   },
 };
-
-const INPUT_HANDLE_PROPS = {
+const INPUT = {
   id: 'file-input',
   type: 'target' as const,
   position: Position.Left,
@@ -42,69 +37,55 @@ const INPUT_HANDLE_PROPS = {
 };
 
 const FileInputNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
-  const [selectedFile, setSelectedFile] = useState('');
   const { updateNodeData } = useReactFlow();
+  const { data: allFiles = [], isFetching } = useAudioFilesQuery();
+  const isProcessing = useAppSelector(GetProccecedNodeID) === id;
 
-  const availableFiles = useAvailableFilesWithEmitter(id, selectedFile);
-  const recivedData = useOptions(id);
-  const currentProcessingNode = useAppSelector(GetProccecedNodeID);
-  const isProcessing = currentProcessingNode === id;
+  const selectedFile = String(data?.fileName ?? '');
+  const names = allFiles.map(f => f.fileName);
+  const selectedExists = !selectedFile || names.includes(selectedFile);
 
-  const handleFileSelect = useCallback(
-    (file: string) => {
-      setSelectedFile(file);
-      const nodeData: FileInputNodeData = {
-        filePath: file,
-        fileName: file,
-        options: { gain: 1 },
-      };
-      updateNodeData(id, nodeData);
+  // Only offer files not already used by sibling FileInputs that feed the same mixer(s)
+  const available = useAvailableFilesForMixers(id, allFiles);
 
-      // Notify other components that the flow has updated
-      notifyFlowUpdate();
-    },
-    [id, updateNodeData]
-  );
-
-  useEffect(() => {
-    if (recivedData) {
-      console.log('options data' + JSON.stringify(recivedData));
-    }
-  }, [recivedData]);
-
-  useEffect(() => {
-    const formatedData = data as FileInputNodeData;
-    if (
-      formatedData?.fileName &&
-      formatedData.fileName !== selectedFile &&
-      formatedData.fileName !== 'unknown'
-    ) {
-      console.log(
-        '🔄 Updating selected file from data:',
-        formatedData.fileName
-      );
-      setSelectedFile(formatedData.fileName);
-    }
-  }, [data, selectedFile]);
+  const handleFileSelect = (file: string) => {
+    updateNodeData(id, {
+      fileName: file,
+      filePath: file,
+      options: { gain: 1 },
+    });
+    // No manual notify needed: nodes/edges/data changed → store subscribers re-run
+  };
 
   return (
     <div
-      className={`relative bg-[#383434] rounded-2xl shadow-2xl border-4 border-[#383434] transition-all duration-200 min-w-[250px] ${isProcessing ? ' border-4 border-white' : ''}`}
+      className={clsx(
+        'relative bg-[#383434] rounded-2xl shadow-2xl border-4 transition-all duration-200 min-w-[250px]',
+        isProcessing ? 'border-white' : 'border-[#383434]',
+        !selectedExists && 'border-amber-400'
+      )}
+      data-testid={`file-input-node-${id}`}
     >
-      <Handle {...OUTPUT_HANDLE_PROPS} />
-      <Handle {...INPUT_HANDLE_PROPS} />
+      <Handle {...OUTPUT} />
+      <Handle {...INPUT} />
 
       <div className='px-4 pt-3 pb-2'>
         <h3 className='text-white font-bold italic font-inter text-sm'>
           File Input
         </h3>
+        {!selectedExists && (
+          <p className='text-xs text-amber-300 mt-1'>
+            Previously selected file no longer exists. Pick another.
+          </p>
+        )}
       </div>
 
       <div className='px-4 pb-3'>
         <FileDropdown
           selectedFile={selectedFile}
           onFileSelect={handleFileSelect}
-          files={availableFiles}
+          files={available} // or pass objects if your dropdown supports richer display
+          isLoading={isFetching}
         />
       </div>
     </div>

@@ -1,78 +1,206 @@
+import {
+  FileMetadata,
+  FileWithContent,
+  useMinIOOperations,
+} from '@/features/flow/components/WorkflowBAR/hooks/useMinIOOperations';
 import type { UploadResponse } from '@/lib/FlowAPI';
 import { FlowAPI } from '@/lib/FlowAPI';
 import { ApiErrorResponse } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+
+// ------------------
+// 🔹 Query Key Helpers
+// ------------------
+export const qk = {
+  jsonFiles: ['json-files'] as const,
+  audioFiles: ['audio-files'] as const,
+  workflowFile: (name?: string) => ['workflow-file', name] as const,
+};
+
+// ------------------
+// 🔹 Upload regular files via FlowAPI
+// ------------------
 export const useUploadFile = () => {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: (file: File) => FlowAPI.uploadFile(file),
-    onMutate: () => {
+    onMutate: () =>
       toast.info('Uploading file...', {
+        toastId: 'upload-file',
         autoClose: false,
-        toastId: 'file-upload', // Prevent duplicate toasts
-      });
-    },
+      }),
     onSuccess: (data: UploadResponse) => {
-      // Invalidate and refetch file list after successful upload
-      toast.dismiss('file-upload');
-      toast.success(`✅ File "${data.filename}" uploaded successfully!`, {
-        autoClose: 3000,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['files'] });
+      toast.dismiss('upload-file');
+      toast.success(`✅ File "${data.filename}" uploaded successfully!`);
+      qc.invalidateQueries({ queryKey: qk.jsonFiles });
+      qc.invalidateQueries({ queryKey: qk.audioFiles });
     },
-    onError: (error: ApiErrorResponse) => {
-      toast.dismiss('file-upload');
-      toast.error(error.message || 'Failed to upload file. Please try again.', {
-        autoClose: 5000,
-      });
+    onError: (err: ApiErrorResponse) => {
+      toast.dismiss('upload-file');
+      toast.error(err.message || 'File upload failed');
     },
   });
 };
 
-export const useGetFiles = () => {
-  return useQuery({
-    queryKey: ['files'],
-    queryFn: () => FlowAPI.GetFiles(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+// ------------------
+// 🔹 Query: List all JSON workflow files
+// ------------------
+export const useJsonFilesQuery = () => {
+  const { fetchFileMetadata } = useMinIOOperations();
+
+  return useQuery<FileMetadata[]>({
+    queryKey: qk.jsonFiles,
+    queryFn: () => fetchFileMetadata(),
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
-    retry: 3,
+    retry: 2,
   });
 };
 
-export const UseStopFlow = () => {
+// ------------------
+// 🔹 Query: List audio files
+// ------------------
+export const useAudioFilesQuery = () => {
+  const { fetchAudioFileMetadata } = useMinIOOperations();
+
+  return useQuery<FileMetadata[]>({
+    queryKey: qk.audioFiles,
+    queryFn: () => fetchAudioFileMetadata(),
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// ------------------
+// 🔹 Query: Load workflow content by file name
+// ------------------
+export const useLoadJsonFileQuery = (fileName?: string) => {
+  const { loadFileContent } = useMinIOOperations();
+
+  return useQuery<FileWithContent>({
+    queryKey: qk.workflowFile(fileName),
+    enabled: !!fileName,
+    queryFn: async ({ queryKey, signal }) => {
+      const [, name] = queryKey as ReturnType<typeof qk.workflowFile>;
+      return await loadFileContent(name!, { signal });
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// ------------------
+// 🔹 Upload workflow (to MinIO)
+// ------------------
+export const useUploadWorkflowMutation = () => {
+  const qc = useQueryClient();
+  const { uploadToMinIO } = useMinIOOperations();
+
   return useMutation({
-    mutationFn: (id: string) => FlowAPI.StopFlow(id),
+    mutationFn: (file: File) => uploadToMinIO(file),
+    onMutate: () =>
+      toast.info('Uploading workflow...', {
+        toastId: 'upload-workflow',
+        autoClose: false,
+      }),
     onSuccess: () => {
-      toast.success('File transmit stopped', { autoClose: 2000 });
+      toast.dismiss('upload-workflow');
+      toast.success('Workflow uploaded');
+      qc.invalidateQueries({ queryKey: qk.jsonFiles });
+      qc.invalidateQueries({ queryKey: qk.audioFiles });
+    },
+    onError: (err: ApiErrorResponse) => {
+      toast.dismiss('upload-workflow');
+      toast.error(err.message || 'Workflow upload failed');
     },
   });
 };
 
+export const useUploadAudioFileMutation = () => {
+  const qc = useQueryClient();
+  const { uploadToMinIO } = useMinIOOperations();
+
+  return useMutation({
+    mutationFn: (file: File) => uploadToMinIO(file),
+    onMutate: () =>
+      toast.info('Uploading workflow...', {
+        toastId: 'upload-workflow',
+        autoClose: false,
+      }),
+    onSuccess: () => {
+      toast.dismiss('upload-workflow');
+      toast.success('Workflow uploaded');
+      qc.invalidateQueries({ queryKey: qk.jsonFiles });
+    },
+    onError: (err: ApiErrorResponse) => {
+      toast.dismiss('upload-workflow');
+      toast.error(err.message || 'Workflow upload failed');
+    },
+  });
+};
+// ------------------
+// 🔹 Delete workflow from MinIO
+// ------------------
+export const useDeleteWorkflowMutation = () => {
+  const qc = useQueryClient();
+  const { deleteFromMinIO } = useMinIOOperations();
+
+  return useMutation({
+    mutationFn: (fileName: string) => deleteFromMinIO(fileName),
+    onMutate: () =>
+      toast.info('Deleting workflow...', {
+        toastId: 'delete-workflow',
+        autoClose: false,
+      }),
+    onSuccess: (_data, fileName) => {
+      toast.dismiss('delete-workflow');
+      toast.success(`Workflow "${fileName}" deleted`);
+      qc.invalidateQueries({ queryKey: qk.jsonFiles });
+      qc.removeQueries({ queryKey: qk.workflowFile(fileName) });
+    },
+    onError: (err: ApiErrorResponse) => {
+      toast.dismiss('delete-workflow');
+      toast.error(err.message || 'Failed to delete workflow');
+    },
+  });
+};
+
+// ------------------
+// 🔹 PostFlow — send a running flow to the Node server
+// ------------------
 export const usePostFlow = () => {
   return useMutation({
     mutationFn: (flow: any) => FlowAPI.PostFlow(flow),
-    onMutate: async () => {
-      // Show deleting toast
-      toast.info('sending request to server', {
+    onMutate: () =>
+      toast.info('Sending flow to server...', {
+        toastId: 'post-flow',
         autoClose: false,
-        toastId: `{requet-flow}`,
-      });
-    },
+      }),
     onSuccess: () => {
-      toast.dismiss(`requet-flow`);
-      toast.success('flow has started', {
-        autoClose: 2000,
-      });
+      toast.dismiss('post-flow');
+      toast.success('✅ Flow started on server');
     },
     onError: (err: ApiErrorResponse) => {
-      toast.dismiss(`{requet-flow}`);
-      toast.error(err.message || 'request has failed', {
-        autoClose: 5000,
-      });
+      toast.dismiss('post-flow');
+      toast.error(err.message || 'Flow request failed');
+    },
+  });
+};
+
+// ------------------
+// 🔹 StopFlow — tell the server to stop a running flow
+// ------------------
+export const useStopFlow = () => {
+  return useMutation({
+    mutationFn: (id: string) => FlowAPI.StopFlow(id),
+    onSuccess: () => toast.success('🛑 Flow stopped'),
+    onError: (err: ApiErrorResponse) => {
+      toast.error(err.message || 'Failed to stop flow');
     },
   });
 };

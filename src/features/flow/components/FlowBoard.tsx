@@ -16,7 +16,6 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import React, { useState, useEffect } from 'react';
-import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 import { GetIsRunning, useAppSelector } from '@/app/store';
 import { useFlowHandlers } from '../hooks/useFlowEvents.ts';
 

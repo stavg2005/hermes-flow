@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
@@ -37,11 +38,11 @@ const minioClient = new Minio.Client({
 });
 
 const JSON_BUCKET = 'workflows';
-const OTHER_BUCKET = 'audio-files';
+const AUDIO_BUCKET = 'audio-files';
 
 // Initialize buckets
 async function initializeBuckets() {
-  for (const bucket of [JSON_BUCKET, OTHER_BUCKET]) {
+  for (const bucket of [JSON_BUCKET, AUDIO_BUCKET]) {
     const exists = await minioClient.bucketExists(bucket);
     if (!exists) {
       await minioClient.makeBucket(bucket, 'us-east-1');
@@ -120,15 +121,11 @@ app.post(
               `Failed to process JSON file ${file.originalname}:`,
               error
             );
-            // If JSON parsing fails, treat as other file
-            await minioClient.putObject(OTHER_BUCKET, fileName, file.buffer);
-            results.otherFiles.push(file.originalname);
-            results.uploadedToMinIO.otherFiles.push(fileName);
           }
         } else {
           // Upload non-JSON file to MinIO
           await minioClient.putObject(
-            OTHER_BUCKET,
+            AUDIO_BUCKET,
             fileName,
             file.buffer,
             file.size,
@@ -199,6 +196,45 @@ app.get('/json-files-metadata', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/audio-files-metadata', async (req: Request, res: Response) => {
+  try {
+    const fileMetadata = [];
+    const stream = minioClient.listObjects(AUDIO_BUCKET, '', true);
+
+    for await (const obj of stream) {
+      if (obj.name) {
+        // Get original filename from metadata
+        try {
+          const stat = await minioClient.statObject(JSON_BUCKET, obj.name);
+          const originalName = stat.metaData?.['x-original-name'] || obj.name;
+
+          fileMetadata.push({
+            fileName: obj.name,
+            originalName: originalName,
+            size: obj.size,
+            lastModified: obj.lastModified,
+            // NO content field - just metadata!
+          });
+        } catch (error) {
+          // If stat fails, just use basic info
+          fileMetadata.push({
+            fileName: obj.name,
+            originalName: obj.name,
+            size: obj.size,
+            lastModified: obj.lastModified,
+          });
+        }
+      }
+    }
+
+    res.json({
+      count: fileMetadata.length,
+      files: fileMetadata,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list file metadata' });
+  }
+});
 // Get JSON file content from MinIO
 app.get('/json/:filename', async (req: Request, res: Response) => {
   try {
@@ -226,42 +262,25 @@ app.get('/json/:filename', async (req: Request, res: Response) => {
   }
 });
 
-// List other file names only
-app.get('/other-files', async (req: Request, res: Response) => {
+app.delete('/json/:filename', async (req: Request, res: Response) => {
+  // this is what your route defines:
+  const { filename } = req.params as { filename: string };
+
+  if (!filename) {
+    return res.status(400).json({ success: false, error: 'Missing filename' });
+  }
+
   try {
-    const fileNames = [];
-    const stream = minioClient.listObjects(OTHER_BUCKET, '', true);
-
-    for await (const obj of stream) {
-      if (obj.name) {
-        // Get original filename from metadata
-        try {
-          const stat = await minioClient.statObject(OTHER_BUCKET, obj.name);
-          const originalName = stat.metaData?.['x-original-name'] || obj.name;
-
-          fileNames.push({
-            storedName: obj.name,
-            originalName: originalName,
-            size: obj.size,
-            lastModified: obj.lastModified,
-          });
-        } catch (error) {
-          fileNames.push({
-            storedName: obj.name,
-            originalName: obj.name,
-            size: obj.size,
-            lastModified: obj.lastModified,
-          });
-        }
-      }
-    }
-
-    res.json({
-      count: fileNames.length,
-      files: fileNames,
+    await minioClient.removeObject(JSON_BUCKET, filename);
+    return res.status(200).json({
+      success: true,
+      message: `Deleted '${filename}' from '${JSON_BUCKET}'`,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to list other files' });
+    console.error('Error deleting object:', error);
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to delete object' });
   }
 });
 

@@ -1,30 +1,32 @@
-// Updated useFlowHandlers with debugging
+// useFlowHandlers.ts
 import { GetIsRunning, useAppSelector } from '@/app/store';
 import { NodeType } from '@/features/flow/types/connectionConfig';
-import { notifyFlowUpdate } from '@/features/nodes/fileinput/hooks/useAvailabeFiles.ts';
 import { createDefaultNodeData } from '@/features/nodes/types/nodeDataFactory';
 import type { Connection, OnConnect } from '@xyflow/react';
-import { addEdge, useEdges, useNodes, useReactFlow } from '@xyflow/react';
+import { addEdge, useReactFlow } from '@xyflow/react';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import {
   getConnectionErrorMessage,
   isValidConnection,
-} from '../services/ConnectionValidation.ts';
+} from '../services/ConnectionValidation';
+
 export const useFlowHandlers = () => {
-  const reactFlowInstance = useReactFlow();
-  const nodes = useNodes();
-  const edges = useEdges();
-  const { setEdges, addNodes } = useReactFlow();
+  const { setEdges, addNodes, getNodes, getEdges, screenToFlowPosition } =
+    useReactFlow();
   const isProcessing = useAppSelector(GetIsRunning);
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
       if (isProcessing) return;
 
+      // Always validate against the latest graph from the instance
+      const nodes = getNodes();
+      const edges = getEdges();
+
       if (isValidConnection(connection, nodes, edges)) {
         setEdges(eds => addEdge(connection, eds));
-        notifyFlowUpdate();
+        // No notifyFlowUpdate(): RF store change will re-trigger subscribers
       } else {
         const errorMessage = getConnectionErrorMessage(
           connection,
@@ -34,13 +36,12 @@ export const useFlowHandlers = () => {
         toast.error(errorMessage);
       }
     },
-    [setEdges, nodes, edges, isProcessing]
+    [getNodes, getEdges, setEdges, isProcessing]
   );
 
   const onDragOver = useCallback(
     (event: React.DragEvent) => {
       if (isProcessing) return;
-
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
     },
@@ -49,60 +50,43 @@ export const useFlowHandlers = () => {
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
-      if (isProcessing) {
-        return;
-      }
+      if (isProcessing) return;
 
       event.preventDefault();
 
       const nodeType = event.dataTransfer.getData('application/reactflow');
-      console.log('nodeType ' + nodeType);
       if (!nodeType) {
         toast.error('No node type found');
         return;
       }
 
-      if (!reactFlowInstance) {
-        toast.error('Flow instance not available');
-        return;
-      }
-
-      // Use reactFlowInstance.getNodes() instead of the stale nodes hook
-      const currentNodes = reactFlowInstance.getNodes();
-      if (
-        nodeType === 'clients' &&
-        currentNodes.some(node => node.type === 'clients')
-      ) {
+      // Guard against duplicates (use fresh nodes)
+      const nodes = getNodes();
+      if (nodeType === 'clients' && nodes.some(n => n.type === 'clients')) {
         toast.error('Client node already present');
         return;
       }
 
-      const position = reactFlowInstance.screenToFlowPosition({
+      const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
 
       try {
         const nodeData = createDefaultNodeData(nodeType as NodeType);
-
-        const newNode = {
+        addNodes({
           id: `${nodeType}-${Date.now()}`,
-          type: nodeType,
+          type: nodeType as any,
           position,
           data: nodeData,
-        };
-
-        addNodes(newNode);
+        });
+        // No notifyFlowUpdate(): adding a node already updates the store
       } catch (error) {
-        toast.error(`Error creating node: ${error}`);
+        toast.error(`Error creating node: ${String(error)}`);
       }
     },
-    [reactFlowInstance, addNodes, isProcessing]
+    [getNodes, screenToFlowPosition, addNodes, isProcessing]
   );
 
-  return {
-    onConnect,
-    onDragOver,
-    onDrop,
-  };
+  return { onConnect, onDragOver, onDrop };
 };

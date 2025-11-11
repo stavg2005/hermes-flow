@@ -3,10 +3,15 @@ import { FC } from 'react';
 import { useFileUploadModal } from '../hooks/useFileUploadModal';
 interface FileUploadModalProps {
   isVisible: boolean;
+  isJson: boolean;
   onClose: () => void;
 }
 
-const FileUploadModal: FC<FileUploadModalProps> = ({ isVisible, onClose }) => {
+const FileUploadModal: FC<FileUploadModalProps> = ({
+  isVisible,
+  onClose,
+  isJson,
+}) => {
   const {
     isUploading,
     isDragOver,
@@ -22,17 +27,27 @@ const FileUploadModal: FC<FileUploadModalProps> = ({ isVisible, onClose }) => {
 
   return (
     <>
-      <input
-        type='file'
-        ref={fileInputRef}
-        accept='.json'
-        onChange={handleFileSelect}
-        className='hidden'
-      />
+      {isJson ? (
+        <input
+          type='file'
+          ref={fileInputRef}
+          accept='.json'
+          onChange={handleFileSelect}
+          className='hidden'
+        />
+      ) : (
+        <input
+          type='file'
+          ref={fileInputRef}
+          accept='.wav'
+          onChange={handleFileSelect}
+          className='hidden'
+        />
+      )}
 
       <div
         className='absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm rounded-3xl'
-        onClick={isUploading ? undefined : onClose} // ✅ Don't close while uploading
+        onClick={isUploading ? undefined : onClose}
       >
         <button
           className={`border-2 border-dashed rounded-lg p-8 md:p-20 backdrop-blur-sm transition-all duration-200 mx-4 max-w-md w-full focus:outline-none focus:ring-2 focus:ring-white/50 ${
@@ -51,7 +66,7 @@ const FileUploadModal: FC<FileUploadModalProps> = ({ isVisible, onClose }) => {
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           type='button'
-          aria-label='Upload JSON file'
+          aria-label='Upload file'
           disabled={isUploading}
         >
           {isUploading ? (
@@ -68,7 +83,7 @@ const FileUploadModal: FC<FileUploadModalProps> = ({ isVisible, onClose }) => {
                   isDragOver ? 'text-green-300' : 'text-white'
                 }`}
               >
-                {isDragOver ? 'drop it now!' : 'drop json file'}
+                {isDragOver ? 'drop it now!' : 'drop file'}
               </div>
               <Upload
                 className={`w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 transition-colors ${
