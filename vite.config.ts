@@ -1,33 +1,54 @@
-// vite.config.ts
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vitest/config'; // ← Change this line
+import { defineConfig } from 'vitest/config';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/setupTests.ts'],
-    globals: true, // Enables global test functions without imports
-  },
+  plugins: [
+    // `react.exclude` is not needed; plugins already ignore /node_modules/
+    react(),
+    tailwindcss(),
+  ],
+
   server: {
-    host: '0.0.0.0',
+    host: true, // Listen on all addresses (good for mobile testing)
     port: 5173,
     strictPort: true,
+
+    // File watching optimizations (this is a good setting)
     watch: {
-      usePolling: true,
-      interval: 100,
+      ignored: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/.git/**',
+        '**/coverage/**',
+      ],
     },
-    hmr: {
-      host: '0.0.0.0',
-      port: 5173,
-    },
+
+    // `hmr: { overlay: true }` is the default behavior, so it's not needed.
   },
+
+  // Path aliases (this was already perfect)
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+
+  build: {
+    sourcemap: 'hidden',
+
+    chunkSizeWarningLimit: 1000, // KB
+  },
+
+  // Test configuration (this was already perfect)
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/setupTests.ts'],
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
     },
   },
 });

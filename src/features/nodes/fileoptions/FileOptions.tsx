@@ -1,14 +1,10 @@
-import { Handle, NodeProps, Position } from '@xyflow/react';
-import React from 'react';
-import { KeyboardEvent } from 'react';
-import { useReactFlow } from '@xyflow/react';
-import { useState } from 'react';
+import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
+import React, { KeyboardEvent, useState } from 'react';
 const FileOptions: React.FC<NodeProps> = ({ id }) => {
-
   const handleOptionsChange = (gain: number) => {
     setGain(gain);
-    updateNodeData(id, { gain: gain })
-  }
+    updateNodeData(id, { gain: gain });
+  };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -21,7 +17,7 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
   };
 
   const { updateNodeData } = useReactFlow();
-  const [gain, setGain] = useState(1);
+  const [gain, setGain] = useState(1.0);
   return (
     <div className='bg-[#373333] rounded-3xl p-4 min-w-[200px] '>
       <Handle
@@ -79,7 +75,6 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
 
           {/* Option 3 */}
           <div className='space-y-3'>
-
             <div className='flex flex-row'>
               <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
                 option 3:
