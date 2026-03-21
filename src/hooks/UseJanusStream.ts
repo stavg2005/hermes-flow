@@ -33,6 +33,10 @@ export class BrowserWebRTCShim implements WebRTC {
   };
 }
 
+import { env } from '@/config/env';
+
+const API_BASE_URL = env.VITE_API_BASE_URL;
+
 export const useJanusAudioStream = (serverUrl: string) => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<string>('idle');
@@ -152,7 +156,7 @@ export const useJanusAudioStream = (serverUrl: string) => {
             setStatus('playing');
 
             if (hermesSessionId) {
-              fetch(`http://localhost:5000/resume/?id=${hermesSessionId}`, {
+              fetch(`${API_BASE_URL}/resume/?id=${hermesSessionId}`, {
                 method: 'POST',
               }).catch(err =>
                 console.error('Failed to resume Hermes backend:', err)

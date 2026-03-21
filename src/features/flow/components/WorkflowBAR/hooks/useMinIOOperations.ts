@@ -13,8 +13,10 @@ export interface FileWithContent {
   workflowName: string;
 }
 
+import { env } from '@/config/env';
+
 // useMinIOOperations.ts
-const API_BASE = 'http://localhost:3000';
+const API_BASE = env.VITE_NODE_SERVER_URL;
 
 export const useMinIOOperations = () => {
   const uploadToMinIO = async (file: File) => {

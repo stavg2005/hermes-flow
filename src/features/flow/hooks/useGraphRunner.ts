@@ -5,6 +5,9 @@ import { useReactFlow } from '@xyflow/react';
 import axios from 'axios';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { env } from '@/config/env';
+
+const API_BASE_URL = env.VITE_API_BASE_URL;
 import { GraphTraversalService } from '../services/GraphTraversalService';
 import { ExecutionMode, RunRequest, useLiveSession } from './useLiveSession';
 
@@ -82,7 +85,7 @@ export const useGraphRunner = () => {
   const stopWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`http://localhost:5000/stop/?id=${activeSessionId}`);
+        await axios.post(`${API_BASE_URL}/stop/?id=${activeSessionId}`);
       } catch (err) {
         toast.error(`Failed to stop session on server:${err}`);
       }
@@ -94,7 +97,7 @@ export const useGraphRunner = () => {
   const pauseWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`http://localhost:5000/pause/?id=${activeSessionId}`);
+        await axios.post(`${API_BASE_URL}/pause/?id=${activeSessionId}`);
       } catch (err) {
         toast.error(`failed to pause session: ${err}`);
       }
@@ -104,7 +107,7 @@ export const useGraphRunner = () => {
   const resumeWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`http://localhost:5000/resume/?id=${activeSessionId}`);
+        await axios.post(`${API_BASE_URL}/resume/?id=${activeSessionId}`);
       } catch (err) {
         toast.error(`failed to resume session: ${err}`);
       }

@@ -37,11 +37,12 @@ const createDefaultDelayData = (): DelayNodeData => ({
 const createDefaultInputData = (): FileInputNodeData => ({
   fileName: 'unknown',
   filePath: 'unknown',
-  options: { gain: 1 },
+  options: { gain: 1, pitch_shift: 0 },
 });
 
 const createDefaultOptionsData = (): FileOptionsNodeData => ({
   gain: 1,
+  pitch_shift: 0,
 });
 
 const createDefaultClientsData = (): ClientData => ({

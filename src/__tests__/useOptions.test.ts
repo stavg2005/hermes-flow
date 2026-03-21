@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useNodeConnections, useNodesData, useReactFlow } from '@xyflow/react';
 import { useOptions } from '@/features/nodes/fileinput/hooks/useOptions';
-import { FileOptionsNodeData } from '@/features/nodes/types/NodeData';
+
 
 // Mock the @xyflow/react hooks
 vi.mock('@xyflow/react', () => ({

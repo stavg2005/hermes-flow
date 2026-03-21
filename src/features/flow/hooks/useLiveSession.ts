@@ -36,10 +36,11 @@ import { Edge, Node } from '@xyflow/react';
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { env } from '@/config/env';
 
 export type ExecutionMode = 'transmit' | 'preview';
-const API_BASE_URL = 'http://localhost:5000';
-const JANUS_WS_URL = 'ws://localhost:8188';
+const API_BASE_URL = env.VITE_API_BASE_URL;
+const JANUS_WS_URL = env.VITE_JANUS_WS_URL;
 
 export const useLiveSession = () => {
   const stats = useAppSelector(state => state.graph.stats);
@@ -81,8 +82,9 @@ export const useLiveSession = () => {
         dispatch(graphProcessingActions.setSessionId(data.sessionID));
 
         dispatch(graphProcessingActions.setStatus('connecting'));
+        const wsUrl = API_BASE_URL.replace(/^http/, 'ws');
         const ws = new WebSocket(
-          `ws://localhost:5000/connect/?id=${data.sessionID}`
+          `${wsUrl}/connect/?id=${data.sessionID}`
         );
         socketRef.current = ws;
 

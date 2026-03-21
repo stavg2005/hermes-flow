@@ -1,5 +1,6 @@
 import type { AxiosError, AxiosResponse } from 'axios';
 import axios from 'axios';
+import { env } from '@/config/env';
 
 export interface ApiErrorResponse {
   message: string;
@@ -9,7 +10,7 @@ export interface ApiErrorResponse {
 }
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: env.VITE_API_BASE_URL,
   timeout: 10000,
 });
 

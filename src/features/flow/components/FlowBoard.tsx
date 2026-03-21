@@ -25,7 +25,7 @@ const STORAGE_KEY = 'reactflow-workspace';
 
 const FlowBoard: React.FC = () => {
   const isProcessing = useAppSelector(GetIsRunning);
-  const [reactFlowInstance, setReactFlowInstance] =
+  const [_reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const { onConnect, onDrop, onDragOver } = useFlowHandlers();
 
@@ -41,7 +41,7 @@ const FlowBoard: React.FC = () => {
           const {
             nodes: savedNodes,
             edges: savedEdges,
-            viewport,
+            // viewport,
           } = JSON.parse(saved);
           setNodes(savedNodes || []);
           setEdges(savedEdges || []);

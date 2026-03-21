@@ -41,6 +41,7 @@ const WorkflowBar: FC<WorkflowBarProps> = ({ onClose }) => {
         <FileUploadModal
           isVisible={isVisible}
           onClose={() => setIsVisible(false)}
+          isJson={true}
         />
       </div>
     </div>

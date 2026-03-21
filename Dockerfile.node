@@ -1,0 +1,20 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copy dependency files
+COPY package*.json ./
+
+# Install ALL dependencies, because we rely on typescript and node types to run src/server/server.ts 
+RUN npm install
+# Also install tsx globally for fast execution of TypeScript
+RUN npm install -g tsx
+
+# Copy the server source code
+COPY src/server ./src/server
+
+# Expose Node API port
+EXPOSE 3000
+
+# Run the server using tsx
+CMD ["tsx", "src/server/server.ts"]

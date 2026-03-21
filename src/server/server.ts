@@ -22,6 +22,8 @@ app.use(
       'http://localhost:5173',
       'http://localhost:4200',
       'http://localhost:5000',
+      'http://localhost',
+      'http://127.0.0.1',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -113,7 +115,7 @@ app.post(
               fileName: fileName,
               size: file.size,
               content: jsonData,
-              minioUrl: `http://localhost:9000/${JSON_BUCKET}/${fileName}`,
+              minioUrl: `${process.env.VITE_MINIO_URL || 'http://localhost:9000'}/${JSON_BUCKET}/${fileName}`,
             });
 
             results.uploadedToMinIO.jsonFiles.push(fileName);
@@ -157,7 +159,7 @@ app.post(
   }
 );
 
-app.get('/json-files-metadata', async (req: Request, res: Response) => {
+app.get('/json-files-metadata', async (_req: Request, res: Response) => {
   try {
     const fileMetadata = [];
     const stream = minioClient.listObjects(JSON_BUCKET, '', true);
@@ -197,7 +199,7 @@ app.get('/json-files-metadata', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/audio-files-metadata', async (req: Request, res: Response) => {
+app.get('/audio-files-metadata', async (_req: Request, res: Response) => {
   try {
     const fileMetadata = [];
     const stream = minioClient.listObjects(AUDIO_BUCKET, '', true);
@@ -255,7 +257,7 @@ app.get('/json/:filename', async (req: Request, res: Response) => {
         res.status(400).json({ error: 'Invalid JSON file' });
       }
     });
-    stream.on('error', error => {
+    stream.on('error', _error => {
       res.status(500).json({ error: 'Failed to read file' });
     });
   } catch (error) {
@@ -286,7 +288,7 @@ app.delete('/json/:filename', async (req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File too large (max 10MB)' });
