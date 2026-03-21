@@ -1,23 +1,38 @@
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
 import React, { KeyboardEvent, useState } from 'react';
 const FileOptions: React.FC<NodeProps> = ({ id }) => {
-  const handleOptionsChange = (gain: number) => {
+  const handleOptionsChange = (gain: number, pitch_shift: number) => {
     setGain(gain);
-    updateNodeData(id, { gain: gain });
+    setPitchShift(pitch_shift);
+    updateNodeData(id, { gain: gain, pitch_shift: pitch_shift });
   };
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (
+    e: KeyboardEvent<HTMLInputElement>,
+    field: 'gain' | 'pitch_shift'
+  ) => {
     if (e.key === 'Enter') {
       const value = Number((e.target as HTMLInputElement).value);
-      if (!isNaN(value) && value > 0) {
-        handleOptionsChange(value);
-        (e.target as HTMLInputElement).value = '';
+
+      if (!isNaN(value)) {
+        // 3. Apply validation depending on what we are editing
+        if (field === 'gain' && value >= 0) {
+          // Pass the new gain, but keep the current pitchShift from state
+          handleOptionsChange(value, pitch_shift);
+          (e.target as HTMLInputElement).value = '';
+        } else if (field === 'pitch_shift') {
+          // Pass the current gain from state, and the new pitch shift
+          // Notice we don't block negative numbers or 0 here!
+          handleOptionsChange(gain, value);
+          (e.target as HTMLInputElement).value = '';
+        }
       }
     }
   };
 
   const { updateNodeData } = useReactFlow();
   const [gain, setGain] = useState(1.0);
+  const [pitch_shift, setPitchShift] = useState(1.0);
   return (
     <div className='bg-[#373333] rounded-3xl p-4 min-w-[200px] '>
       <Handle
@@ -50,25 +65,28 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
           </p>
           <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-27'>
             <input
+              type='number'
               className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
-              onKeyDown={handleKeyPress}
+              onKeyDown={e => handleKeyPress(e, 'gain')}
               onMouseDown={e => e.stopPropagation()}
               placeholder={gain.toString()}
             />
           </div>
         </div>
 
-        {/* Option 2 */}
+        {/* Option rows */}
         <div className='space-y-3'>
           {/* Gain */}
           <div className='flex flex-row'>
             <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
-              option 2:
+              pitch shift:
             </p>
-            <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-20'>
+            <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-27'>
               <input
                 className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
+                onKeyDown={e => handleKeyPress(e, 'pitch_shift')}
                 onMouseDown={e => e.stopPropagation()}
+                placeholder={pitch_shift.toString()}
               />
             </div>
           </div>

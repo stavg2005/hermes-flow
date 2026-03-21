@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/app/store';
+import { ClientData } from '@/features/nodes/types/NodeData';
 import { graphProcessingActions } from '@/store/slices/graphProcessingSlice';
 import { useReactFlow } from '@xyflow/react';
 import axios from 'axios';
@@ -10,7 +11,9 @@ import { ExecutionMode, RunRequest, useLiveSession } from './useLiveSession';
 export const useGraphRunner = () => {
   const dispatch = useAppDispatch();
   const { getNodes, getEdges } = useReactFlow();
-  const { startSession } = useLiveSession();
+
+  const { startSession, audioStream } = useLiveSession();
+
   const activeSessionId = useAppSelector(state => state.graph.activeSessionId);
   const isProcessing = useAppSelector(s => s.graph.isProcessing);
 
@@ -20,11 +23,30 @@ export const useGraphRunner = () => {
 
       const nodes = getNodes();
       const edges = getEdges();
-      const startNode = GraphTraversalService.findStartNode(nodes, edges);
 
+      const startNode = GraphTraversalService.findStartNode(nodes, edges);
       if (!startNode) {
         toast.error('No valid start node found (Input, Mixer, or Delay)');
         return;
+      }
+
+      if (mode != 'preview') {
+        const clients = nodes.find(node => node.type === 'clients');
+        if (!clients) {
+          toast.error('No clients found');
+          return;
+        }
+        const clientsArray = (clients.data?.clients as ClientData[]) || null;
+        if (!clientsArray || clientsArray.length === 0) {
+          toast.error('Clients have no data');
+          return;
+        }
+        for (const client of clientsArray) {
+          if (!client.ip.length || !client.port.length) {
+            toast.error('One or more clients are missing data');
+            return;
+          }
+        }
       }
 
       const payload: RunRequest = {
@@ -37,7 +59,6 @@ export const useGraphRunner = () => {
 
       try {
         dispatch(graphProcessingActions.startProcessing());
-        // Pass the mode down to useLiveSession
         await startSession(payload, mode);
       } catch (err) {
         console.error(err);
@@ -52,6 +73,7 @@ export const useGraphRunner = () => {
     () => executeGraph('transmit'),
     [executeGraph]
   );
+
   const previewWorkflow = useCallback(
     () => executeGraph('preview'),
     [executeGraph]
@@ -64,6 +86,7 @@ export const useGraphRunner = () => {
       } catch (err) {
         toast.error(`Failed to stop session on server:${err}`);
       }
+      dispatch(graphProcessingActions.setJanusMount(null));
     }
     dispatch(graphProcessingActions.stopProcessing());
   }, [dispatch, activeSessionId]);
@@ -87,6 +110,7 @@ export const useGraphRunner = () => {
       }
     }
   }, [activeSessionId]);
+
   return {
     runWorkflow,
     stopWorkflow,
@@ -94,5 +118,6 @@ export const useGraphRunner = () => {
     resumeWorkflow,
     isProcessing,
     previewWorkflow,
+    audioStream,
   };
 };

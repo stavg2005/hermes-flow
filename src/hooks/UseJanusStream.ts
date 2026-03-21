@@ -1,6 +1,6 @@
-import { GetJanusMount, useAppSelector } from '@/app/store';
 import { Client, MediaDevices, WebRTC } from 'janus-gateway-tsdx';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
 export class BrowserMediaDevicesShim implements MediaDevices {
   getUserMedia = (
     constraints: MediaStreamConstraints
@@ -11,179 +11,235 @@ export class BrowserMediaDevicesShim implements MediaDevices {
 
 export class BrowserWebRTCShim implements WebRTC {
   newRTCPeerConnection = (config: RTCConfiguration): RTCPeerConnection => {
-    return new window.RTCPeerConnection(config);
+    const enhancedConfig: RTCConfiguration = {
+      ...config,
+      iceServers: [
+        ...(config.iceServers || []),
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
+    };
+    return new window.RTCPeerConnection(enhancedConfig);
   };
+
   newRTCSessionDescription = (
     jsep: RTCSessionDescriptionInit
   ): RTCSessionDescription => {
     return new window.RTCSessionDescription(jsep);
   };
+
   newRTCIceCandidate = (candidate: RTCIceCandidateInit): RTCIceCandidate => {
     return new window.RTCIceCandidate(candidate);
   };
 }
+
 export const useJanusAudioStream = (serverUrl: string) => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<string>('idle');
   const [error, setError] = useState<Error | null>(null);
-  const streamId = useAppSelector(GetJanusMount);
-  const pluginRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (!streamId) {
-      setStatus('waiting_for_mountpoint');
-      return;
+  const pluginRef = useRef<any>(null);
+  const janusClientRef = useRef<any>(null);
+  const sessionRef = useRef<any>(null);
+  const connectionRef = useRef<any>(null);
+  const activeMountpointRef = useRef<number | null>(null);
+
+  const operationQueue = useRef<Promise<void>>(Promise.resolve());
+
+  const executeDisconnect = async () => {
+    const mountpointId = activeMountpointRef.current;
+    activeMountpointRef.current = null;
+
+    if (pluginRef.current) {
+      pluginRef.current.removeAllListeners('message');
+      if (mountpointId) {
+        pluginRef.current
+          .send({
+            janus: 'message',
+            body: { request: 'destroy', id: mountpointId },
+          })
+          .catch(() => {});
+      }
     }
 
-    let session: any = null;
-    let connection: any = null;
+    // Give the WebSocket exactly 50ms to transmit the destroy message over the network
+    await new Promise(resolve => setTimeout(resolve, 50));
 
-    const startAudioStream = async () => {
-      try {
-        setStatus('connecting');
-        const janusClient = new Client(
-          serverUrl,
-          { keepalive: true },
-          new BrowserMediaDevicesShim(),
-          new BrowserWebRTCShim()
+    if (connectionRef.current) {
+      connectionRef.current.close().catch(() => {});
+    }
+
+    pluginRef.current = null;
+    sessionRef.current = null;
+    connectionRef.current = null;
+    janusClientRef.current = null;
+    setAudioStream(null);
+    setStatus('idle');
+  };
+
+  const disconnectFromJanus = useCallback(() => {
+    operationQueue.current = operationQueue.current
+      .then(async () => {
+        console.log('Executing queued Janus disconnect...');
+        await executeDisconnect();
+      })
+      .catch(err => console.error('Janus disconnect error:', err));
+
+    return operationQueue.current;
+  }, []);
+
+  const connectToJanus = useCallback(
+    (mountpointId: number, hermesSessionId: string | null) => {
+      operationQueue.current = operationQueue.current.then(async () => {
+        console.log(
+          `Executing queued Janus connect for mountpoint ${mountpointId}...`
         );
 
-        connection = await janusClient.createConnection('audio-viewer');
-        session = await connection.createSession();
-        pluginRef.current = await session.attachPlugin(
-          'janus.plugin.streaming'
-        );
-        const activePlugin = pluginRef.current;
+        if (janusClientRef.current) {
+          await executeDisconnect();
+        }
 
-        activePlugin.createPeerConnection();
-        const pc = activePlugin.getPeerConnection();
+        try {
+          setStatus('connecting');
+          setError(null);
+          activeMountpointRef.current = mountpointId;
 
-        pc.ontrack = (event: RTCTrackEvent) => {
-          if (event.streams && event.streams[0]) {
-            setAudioStream(event.streams[0]);
+          const localClient = new Client(
+            serverUrl,
+            { keepalive: true },
+            new BrowserMediaDevicesShim(),
+            new BrowserWebRTCShim()
+          );
+          janusClientRef.current = localClient;
+
+          const localConnection =
+            await localClient.createConnection('audio-viewer');
+          connectionRef.current = localConnection;
+
+          const localSession = await localConnection.createSession();
+          sessionRef.current = localSession;
+
+          const localPlugin = await localSession.attachPlugin(
+            'janus.plugin.streaming'
+          );
+          pluginRef.current = localPlugin;
+
+          localPlugin.createPeerConnection();
+          const pc = localPlugin.getPeerConnection();
+
+          pc.oniceconnectionstatechange = () => {
+            console.log('ICE Connection State:', pc.iceConnectionState);
+            if (
+              pc.iceConnectionState === 'failed' ||
+              pc.iceConnectionState === 'disconnected'
+            ) {
+              const msg = `WebRTC ICE connection ${pc.iceConnectionState}`;
+              setError(new Error(msg));
+              setStatus('error');
+              executeDisconnect().catch(console.error);
+            }
+          };
+
+          pc.ontrack = (event: RTCTrackEvent) => {
+            console.log('WebRTC track received!', event.track);
+
+            const stream =
+              event.streams && event.streams.length > 0
+                ? event.streams[0]
+                : new MediaStream([event.track]);
+
+            setAudioStream(stream);
             setStatus('playing');
-          }
-        };
 
-        // 🚨 UPDATED MESSAGE LISTENER 🚨
-        activePlugin.on('message', async (message: any) => {
-          console.log('Janus Message Received:', message);
+            if (hermesSessionId) {
+              fetch(`http://localhost:5000/resume/?id=${hermesSessionId}`, {
+                method: 'POST',
+              }).catch(err =>
+                console.error('Failed to resume Hermes backend:', err)
+              );
+            }
+          };
 
-          // 🚨 Unpack the tsdx wrapper! 🚨
-          const rawMessage = message.plainMessage || message;
-          const pluginData = rawMessage?.plugindata?.data;
+          localPlugin.on('message', async (message: any) => {
+            console.log('Janus Message:', message);
+            const rawMessage = message.plainMessage || message;
 
-          // 1. Listen for the 'created' confirmation before watching!
-          if (pluginData && pluginData.streaming === 'created') {
-            console.log(
-              `Mountpoint ${streamId} fully created! Now requesting to watch...`
-            );
-            setStatus('requesting');
+            if (rawMessage.janus === 'hangup') {
+              console.warn('Janus hangup:', rawMessage.reason);
+              setError(
+                new Error(
+                  `Janus hangup: ${rawMessage.reason || 'Unknown reason'}`
+                )
+              );
+              setStatus('error');
+              executeDisconnect().catch(console.error);
+              return;
+            }
+            const pluginData =
+              rawMessage?.plugindata?.data || rawMessage?.plugin_data?.data;
 
-            await activePlugin.send({
-              janus: 'message',
-              body: { request: 'watch', id: streamId },
-            });
-          }
+            if (pluginData && pluginData.streaming === 'created') {
+              console.log(
+                `Mountpoint ${mountpointId} fully created! Now requesting to watch...`
+              );
+              await localPlugin.send({
+                janus: 'message',
+                body: { request: 'watch', id: mountpointId },
+              });
+            }
 
-          // Handle any errors Janus sends back
-          if (pluginData && pluginData.error) {
-            console.error('Janus Plugin Error:', pluginData.error);
-            setError(new Error(pluginData.error));
-          }
-
-          // 2. Handle the WebRTC JSEP Offer (triggered AFTER 'watch')
-          // tsdx might attach jsep to the top level or inside plainMessage
-          const jsep =
-            message.jsep ||
-            rawMessage.jsep ||
-            (message.get && message.get('jsep'));
-
-          if (jsep && jsep.type === 'offer') {
-            setStatus('negotiating');
-            try {
-              const answer = await activePlugin.createAnswer(jsep, {
+            const jsep =
+              message.jsep ||
+              rawMessage.jsep ||
+              (message.get && message.get('jsep'));
+            if (jsep && jsep.type === 'offer') {
+              const answer = await localPlugin.createAnswer(jsep, {
                 audio: true,
                 video: false,
               });
-              await activePlugin.send({
+              await localPlugin.send({
                 janus: 'message',
                 body: { request: 'start' },
                 jsep: answer,
               });
-            } catch (err) {
-              console.error('Negotiation error:', err);
             }
-          }
-        });
+          });
 
-        // 🚨 SEND THE CREATE REQUEST ONLY 🚨
-        // (Do not send the watch request here anymore)
-        setStatus('creating_mountpoint');
-        await activePlugin.send({
-          janus: 'message',
-          body: {
-            request: 'create',
-            type: 'rtp',
-            id: streamId,
-            description: `Hermes Dynamic Session ${streamId}`,
-            audio: true,
-            audioport: streamId,
-            audiopt: 8,
-            audiortpmap: 'PCMA/8000',
-            video: false,
-          },
-        });
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error('Failed to connect to Janus')
-        );
-        setStatus('error');
-      }
-    };
-
-    startAudioStream();
-
-    // 4. CLEANUP: Destroy the mountpoint when done
-    return () => {
-      const cleanup = async () => {
-        if (pluginRef.current) {
-          pluginRef.current.removeAllListeners('message');
-
-          if (streamId) {
-            await pluginRef.current
-              .send({
-                janus: 'message',
-                body: { request: 'destroy', id: streamId },
-              })
-              .catch(() => console.warn('Failed to destroy mountpoint'));
-          }
-
-          await pluginRef.current
-            .send({ janus: 'message', body: { request: 'stop' } })
-            .catch(() => {});
-          await pluginRef.current.hangup().catch(() => {});
-          await pluginRef.current.detach().catch(() => {});
+          setStatus('creating_mountpoint');
+          await localPlugin.send({
+            janus: 'message',
+            body: {
+              request: 'create',
+              type: 'rtp',
+              id: mountpointId,
+              description: `Hermes Dynamic Session ${mountpointId}`,
+              audio: true,
+              audioport: mountpointId,
+              audiopt: 8,
+              audiortpmap: 'PCMA/8000',
+              video: false,
+            },
+          });
+        } catch (err) {
+          console.error('Janus connection failed:', err);
+          setError(
+            err instanceof Error ? err : new Error('Failed to connect to Janus')
+          );
+          setStatus('error');
+          await executeDisconnect();
         }
-        if (session) await session.destroy().catch(() => {});
-        if (connection) await connection.close().catch(() => {});
-      };
-      cleanup();
-    };
-  }, [serverUrl, streamId]);
+      });
 
-  // NEW: Export control functions that talk directly to Janus
-  const pauseStream = () => {
-    if (pluginRef.current) {
-      pluginRef.current.send({ janus: 'message', body: { request: 'pause' } });
-    }
+      return operationQueue.current;
+    },
+    [serverUrl]
+  );
+
+  return {
+    audioStream,
+    status,
+    error,
+    connectToJanus,
+    disconnectFromJanus,
   };
-
-  const resumeStream = () => {
-    if (pluginRef.current) {
-      pluginRef.current.send({ janus: 'message', body: { request: 'start' } });
-    }
-  };
-
-  return { audioStream, status, error, pauseStream, resumeStream };
 };

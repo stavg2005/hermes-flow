@@ -1,5 +1,5 @@
 import { GetIsRunning, useAppSelector } from '@/app/store';
-import { NodeProps } from '@xyflow/react';
+import { Handle, NodeProps, Position } from '@xyflow/react';
 import { ClientData } from '../types/NodeData.ts';
 import { AddClientButton } from './AddClientButton';
 import ClientItem from './ClientItem';
@@ -18,6 +18,22 @@ const ClientsNode: React.FC<NodeProps> = ({ id, data }) => {
         </h2>
       </div>
 
+      <Handle
+        id='clients-inputs'
+        type='target'
+        position={Position.Left}
+        style={{
+          position: 'absolute',
+          left: '-12px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: '24px',
+          height: '24px',
+          background: '#709DFF',
+          borderRadius: '50%',
+          border: 'none',
+        }}
+      />
       <div className='space-y-3'>
         {clients.map((client: ClientData) => (
           <ClientItem

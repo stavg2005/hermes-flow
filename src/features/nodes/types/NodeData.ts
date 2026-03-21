@@ -14,6 +14,7 @@ export interface FileInputNodeData extends Record<string, unknown> {
 
 export interface FileOptionsNodeData extends Record<string, unknown> {
   gain: number;
+  pitch_shift: number;
   //future options
 }
 

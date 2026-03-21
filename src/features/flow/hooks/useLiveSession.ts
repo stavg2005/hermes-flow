@@ -27,8 +27,10 @@ export interface RunRequest {
     edges: Edge[];
   };
 }
+
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { CustomNode } from '@/features/nodes/types/nodes';
+import { useJanusAudioStream } from '@/hooks/UseJanusStream';
 import { graphProcessingActions } from '@/store/slices/graphProcessingSlice';
 import { Edge, Node } from '@xyflow/react';
 import axios from 'axios';
@@ -37,12 +39,35 @@ import { toast } from 'react-toastify';
 
 export type ExecutionMode = 'transmit' | 'preview';
 const API_BASE_URL = 'http://localhost:5000';
+const JANUS_WS_URL = 'ws://localhost:8188';
+
 export const useLiveSession = () => {
   const stats = useAppSelector(state => state.graph.stats);
   const status = useAppSelector(state => state.graph.status);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const dispatch = useAppDispatch();
+
+  // 2. Initialize the imperative Janus hook here
+  const {
+    audioStream,
+    connectToJanus,
+    disconnectFromJanus,
+    error: janusError,
+  } = useJanusAudioStream(JANUS_WS_URL);
+
+  useEffect(() => {
+    if (janusError) {
+      const errorMsg = `Janus WebRTC Error: ${janusError.message}`;
+      setError(errorMsg); // Update local state
+
+      dispatch(graphProcessingActions.setError(errorMsg));
+      dispatch(graphProcessingActions.setStatus('error'));
+
+      disconnectFromJanus();
+    }
+  }, [janusError, dispatch, disconnectFromJanus]);
+
   const startSession = useCallback(
     async (payload: RunRequest, mode: ExecutionMode = 'transmit') => {
       try {
@@ -72,23 +97,29 @@ export const useLiveSession = () => {
 
             if (payload.type === 'stats') {
               dispatch(graphProcessingActions.setStats(payload));
-
               if (payload.node) {
                 dispatch(graphProcessingActions.setCurrentNode(payload.node));
               }
             } else if (payload.type === 'completion') {
               toast.success('Processing Complete');
               dispatch(graphProcessingActions.completeProcessing());
+
+              // 🚨 3. Clean up Janus when processing completes
+              disconnectFromJanus();
               ws.close();
             } else if (payload.type === 'error') {
               toast.error(payload.message);
               dispatch(graphProcessingActions.setError(payload.message));
+              disconnectFromJanus(); // Clean up on error
             } else if (payload.type === 'webrtc_ready') {
               dispatch(
                 graphProcessingActions.setJanusMount(
                   Number(payload.mountpoint_id)
                 )
               );
+
+              // 🚨 4. Start the WebRTC connection exactly when Hermes is ready
+              connectToJanus(Number(payload.mountpoint_id), data.sessionID);
             }
           } catch (e) {
             console.error('WS Parse Error', e);
@@ -98,12 +129,14 @@ export const useLiveSession = () => {
         ws.onerror = () => {
           setError('WebSocket connection failed.');
           dispatch(graphProcessingActions.setStatus('error'));
+          disconnectFromJanus();
         };
 
         ws.onclose = event => {
           if (event.wasClean) {
             console.log('websocket closed');
             dispatch(graphProcessingActions.setStatus('finished'));
+            disconnectFromJanus(); // 🚨 5. Safety cleanup if socket closes
           }
         };
       } catch (err: any) {
@@ -111,18 +144,26 @@ export const useLiveSession = () => {
         dispatch(graphProcessingActions.setStatus('error'));
       }
     },
-    [dispatch]
+    [dispatch, connectToJanus, disconnectFromJanus] // Add to dependencies
   );
 
-  // Cleanup: Close socket when component unmounts
+  // Cleanup: Close socket and WebRTC when component unmounts
   useEffect(() => {
     return () => {
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;
       }
+      disconnectFromJanus();
     };
-  }, []);
+  }, [disconnectFromJanus]);
 
-  return { startSession, stats, status, error };
+  // 6. Export everything your UI needs
+  return {
+    startSession,
+    stats,
+    status,
+    error,
+    audioStream,
+  };
 };

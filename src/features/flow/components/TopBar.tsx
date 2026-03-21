@@ -1,6 +1,6 @@
 import { GetIsRunning, useAppSelector } from '@/app/store';
-import { useJanusAudioStream } from '@/hooks/UseJanusStream';
 import React, { useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 import { useGraphRunner } from '../hooks/useGraphRunner';
 import AudioDashboard from './DashBoard';
 import { FileControls } from './FileControls';
@@ -15,33 +15,26 @@ const TopBar: React.FC = () => {
     resumeWorkflow,
     pauseWorkflow,
     isProcessing,
+    audioStream,
   } = useGraphRunner();
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { audioStream, pauseStream, resumeStream } = useJanusAudioStream(
-    'ws://localhost:8188'
-  );
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     if (audioRef.current && audioStream) {
-      // 1. Attach the WebRTC stream to the audio element
       audioRef.current.srcObject = audioStream;
 
-      // 2. Explicitly tell the browser to play it
       audioRef.current
         .play()
-        .then(() => {
-          console.log('Audio is playing successfully!');
-        })
+        .then(() => {})
         .catch(error => {
-          // If the browser blocks it, you'll see this error in your console
-          console.warn('Autoplay blocked by browser policy:', error);
+          toast.error('Autoplay blocked by browser policy:', error);
         });
     }
   }, [audioStream, running]);
 
   const handlePause = () => {
-    pauseStream();
+    // Instantly mute the local client to prevent buffer bleed
     if (audioStream) {
       audioStream.getAudioTracks().forEach(track => {
         track.enabled = false;
@@ -51,8 +44,7 @@ const TopBar: React.FC = () => {
   };
 
   const handleResume = () => {
-    resumeStream();
-
+    // Unmute the local client
     if (audioStream) {
       audioStream.getAudioTracks().forEach(track => {
         track.enabled = true;
@@ -62,23 +54,6 @@ const TopBar: React.FC = () => {
     resumeWorkflow();
   };
 
-  const unlockAudio = async () => {
-    const audio = new Audio();
-
-    audio.src =
-      'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-
-    try {
-      await audio.play();
-      console.log('iOS audio unlocked');
-    } catch (e) {
-      console.warn('Unlock failed:', e);
-    }
-  };
-  const handleStart = async () => {
-    await unlockAudio(); // 👈 must be FIRST
-    runWorkflow(); // 👈 then start Janus
-  };
   return (
     <div className='fixed top-0 left-0 right-0 h-20 bg-transparent z-50 flex items-center px-6'>
       <div className='flex-1'></div>
@@ -90,14 +65,14 @@ const TopBar: React.FC = () => {
       <div className='flex items-center gap-3'>
         <ProcessingControls
           isProcessing={isProcessing}
-          onStart={handleStart}
+          onStart={runWorkflow}
           onPreview={previewWorkflow}
           onStop={stopWorkflow}
           onPause={handlePause}
           onResume={handleResume}
         />
 
-        {running && <audio ref={audioRef} autoPlay playsInline />}
+        <audio ref={audioRef} autoPlay playsInline className='hidden' />
       </div>
 
       <div className='absolute top-full right-0 mt-4'>

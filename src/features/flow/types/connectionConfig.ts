@@ -53,15 +53,15 @@ export const NODE_CONNECTION_CONFIG: Record<NodeType, NodeConnectionConfig> = {
       handles: new Set([]),
     },
     incoming: {
-      allowedSources: new Set(['mixer']),
-      maxConnections: 1,
-      handles: new Set(['clients-input']),
+      allowedSources: new Set(['mixer', 'delay', 'fileInput']),
+      maxConnections: 4,
+      handles: new Set(['clients-inputs']),
     },
   },
 
   fileInput: {
     outgoing: {
-      allowedTargets: new Set(['mixer', 'delay']),
+      allowedTargets: new Set(['mixer', 'delay', 'clients']),
       maxConnections: 1,
       handles: new Set(['file-output']),
     },
@@ -74,7 +74,7 @@ export const NODE_CONNECTION_CONFIG: Record<NodeType, NodeConnectionConfig> = {
 
   mixer: {
     outgoing: {
-      allowedTargets: new Set(['clients', 'delay']),
+      allowedTargets: new Set(['clients', 'delay', 'clients']),
       maxConnections: 10,
       handles: new Set(['mixer-output']),
     },
@@ -87,8 +87,8 @@ export const NODE_CONNECTION_CONFIG: Record<NodeType, NodeConnectionConfig> = {
 
   delay: {
     outgoing: {
-      allowedTargets: new Set(['mixer', 'fileInput']),
-      maxConnections: 1,
+      allowedTargets: new Set(['mixer', 'fileInput', 'clients']),
+      maxConnections: 10,
       handles: new Set(['delay-output', 'fileInput']),
     },
     incoming: {
