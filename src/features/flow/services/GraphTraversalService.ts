@@ -13,13 +13,13 @@ export const GraphTraversalService = {
       return null;
     }
 
-    // Create a copy and sort to avoid mutating the original array
-    const topLeft = validStartNodes.reduce((best, current) => {
-      const bestDistance = best.position.x + best.position.y;
-      const currentDistance = current.position.x + current.position.y;
-      return currentDistance < bestDistance ? current : best;
+    // Select the node closest to the top-left corner using Manhattan distance (x+y)
+    return validStartNodes.reduce((best, current) => {
+      return current.position.x + current.position.y <
+        best.position.x + best.position.y
+        ? current
+        : best;
     });
-    return topLeft;
   },
 
   /**
@@ -87,18 +87,6 @@ export const GraphTraversalService = {
           this.hasOutgoingEdges(node.id, edges)
       )
       .map(node => ({ node, priority: 3 }));
-  },
-
-  /**
-   * Compares two nodes by position (top-left first)
-   */
-  compareNodePositions(a: CustomNode, b: CustomNode): number {
-    // Sort by Y first (top), then by X (left)
-    const yDiff = a.position.y - b.position.y;
-    if (yDiff !== 0) {
-      return yDiff;
-    }
-    return a.position.x - b.position.x;
   },
 
   /**

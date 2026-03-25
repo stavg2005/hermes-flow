@@ -19,39 +19,43 @@ export interface UploadResponse {
   filename: string;
 }
 export const FlowAPI = {
-  PostFlow: async (flow: JSON): Promise<PostFlowResponse> => {
-    const response = await api.post<PostFlowResponse>(`/transmit/`, {
-      flow,
-    });
+  PostFlow: async (flow: object): Promise<PostFlowResponse> => {
+    const response = await api.post<PostFlowResponse>(`/transmit/`, { flow });
+    return response.data;
+  },
 
+  /** Stop a running session on the C++ engine. */
+  stopSession: async (id: string): Promise<StopFlowResponse> => {
+    const response = await api.post<StopFlowResponse>(`/stop/?id=${id}`);
     return response.data;
   },
+
+  /** Pause a running session on the C++ engine. */
+  pauseSession: async (id: string): Promise<void> => {
+    await api.post(`/pause/?id=${id}`);
+  },
+
+  /** Resume a paused session on the C++ engine. */
+  resumeSession: async (id: string): Promise<void> => {
+    await api.post(`/resume/?id=${id}`);
+  },
+
+  /** @deprecated Use stopSession instead. Kept for legacy hook compatibility. */
   StopFlow: async (id: string): Promise<StopFlowResponse> => {
-    const response = await api.post<StopFlowResponse>(`/flow/stop/${id}`);
-    return response.data;
+    return FlowAPI.stopSession(id);
   },
+
   GetFiles: async (): Promise<FilesResponse> => {
     const response = await api.post<FilesResponse>(`/flow/files`);
     return response.data;
   },
+
   uploadFile: async (file: File): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
-
     const response = await api.post<UploadResponse>('/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: progressEvent => {
-        if (progressEvent.total) {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          console.log(`Upload progress: ${percentCompleted}%`);
-        }
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-
     return response.data;
   },
 };

@@ -1,7 +1,19 @@
 import { Client, MediaDevices, WebRTC } from 'janus-gateway-tsdx';
 import { useCallback, useRef, useState } from 'react';
+import { env } from '@/config/env';
 
+/**
+ * BrowserMediaDevicesShim
+ * * The Janus SDK is environment-agnostic (it doesn't assume it's running in a browser).
+ * This class acts as an adapter, telling Janus how to access the user's hardware
+ * (microphone/camera) using the browser's native MediaDevices API.
+ */
 export class BrowserMediaDevicesShim implements MediaDevices {
+  /**
+   * Prompts the user for permission to use their media input devices.
+   * * @param constraints - Defines what media to request (e.g., { audio: true, video: false })
+   * @returns A promise that resolves to the browser's native MediaStream containing the audio tracks.
+   */
   getUserMedia = (
     constraints: MediaStreamConstraints
   ): Promise<MediaStream> => {
@@ -9,10 +21,24 @@ export class BrowserMediaDevicesShim implements MediaDevices {
   };
 }
 
+/**
+ * BrowserWebRTCShim
+ * * This class provides Janus with the core networking blocks required to establish
+ * a peer-to-peer WebRTC connection. It does this by wrapping the browser's native
+ * window.RTC APIs.
+ */
 export class BrowserWebRTCShim implements WebRTC {
+  /**
+   * Creates a new RTCPeerConnection (the actual pipeline for audio/video data).
+   * We intercept the configuration here to inject public STUN servers.
+   * * @param config - The base WebRTC configuration provided by Janus.
+   * @returns A native browser RTCPeerConnection object ready for streaming.
+   */
   newRTCPeerConnection = (config: RTCConfiguration): RTCPeerConnection => {
     const enhancedConfig: RTCConfiguration = {
       ...config,
+      // STUN servers are required for NAT traversal (finding the client's public IP address
+      // so data can bypass local routers/firewalls). We inject Google's free public STUN servers here.
       iceServers: [
         ...(config.iceServers || []),
         { urls: 'stun:stun.l.google.com:19302' },
@@ -22,32 +48,48 @@ export class BrowserWebRTCShim implements WebRTC {
     return new window.RTCPeerConnection(enhancedConfig);
   };
 
+  /**
+   * Wraps the Session Description Protocol (SDP) object.
+   * * This is used during the WebRTC handshake phase. Peers exchange "Offers" and "Answers"
+   * (JSEP - JavaScript Session Establishment Protocol) to agree on audio codecs, bitrates,
+   * and encryption before sending data.
+   */
   newRTCSessionDescription = (
     jsep: RTCSessionDescriptionInit
   ): RTCSessionDescription => {
     return new window.RTCSessionDescription(jsep);
   };
 
+  /**
+   * Wraps the ICE candidate object.
+   * * ICE (Interactive Connectivity Establishment) candidates represent potential network
+   * routing paths (IP + port combinations) that the audio stream could take to reach
+   * the Janus server.
+   */
   newRTCIceCandidate = (candidate: RTCIceCandidateInit): RTCIceCandidate => {
     return new window.RTCIceCandidate(candidate);
   };
 }
 
-import { env } from '@/config/env';
-
 const API_BASE_URL = env.VITE_API_BASE_URL;
+
+// Type inference to guarantee perfect types without needing library exports
+type JanusConnection = Awaited<ReturnType<Client['createConnection']>>;
+type JanusSession = Awaited<ReturnType<JanusConnection['createSession']>>;
+type JanusPlugin = Awaited<ReturnType<JanusSession['attachPlugin']>>;
 
 export const useJanusAudioStream = (serverUrl: string) => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<string>('idle');
   const [error, setError] = useState<Error | null>(null);
 
-  const pluginRef = useRef<any>(null);
-  const janusClientRef = useRef<any>(null);
-  const sessionRef = useRef<any>(null);
-  const connectionRef = useRef<any>(null);
-  const activeMountpointRef = useRef<number | null>(null);
+  // Removed 'any' and applied the inferred types!
+  const pluginRef = useRef<JanusPlugin | null>(null);
+  const janusClientRef = useRef<Client | null>(null);
+  const sessionRef = useRef<JanusSession | null>(null);
+  const connectionRef = useRef<JanusConnection | null>(null);
 
+  const activeMountpointRef = useRef<number | null>(null);
   const operationQueue = useRef<Promise<void>>(Promise.resolve());
 
   const executeDisconnect = async () => {
@@ -66,7 +108,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
       }
     }
 
-    // Give the WebSocket exactly 50ms to transmit the destroy message over the network
     await new Promise(resolve => setTimeout(resolve, 50));
 
     if (connectionRef.current) {
@@ -84,7 +125,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
   const disconnectFromJanus = useCallback(() => {
     operationQueue.current = operationQueue.current
       .then(async () => {
-        console.log('Executing queued Janus disconnect...');
         await executeDisconnect();
       })
       .catch(err => console.error('Janus disconnect error:', err));
@@ -95,10 +135,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
   const connectToJanus = useCallback(
     (mountpointId: number, hermesSessionId: string | null) => {
       operationQueue.current = operationQueue.current.then(async () => {
-        console.log(
-          `Executing queued Janus connect for mountpoint ${mountpointId}...`
-        );
-
         if (janusClientRef.current) {
           await executeDisconnect();
         }
@@ -132,7 +168,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
           const pc = localPlugin.getPeerConnection();
 
           pc.oniceconnectionstatechange = () => {
-            console.log('ICE Connection State:', pc.iceConnectionState);
             if (
               pc.iceConnectionState === 'failed' ||
               pc.iceConnectionState === 'disconnected'
@@ -145,8 +180,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
           };
 
           pc.ontrack = (event: RTCTrackEvent) => {
-            console.log('WebRTC track received!', event.track);
-
             const stream =
               event.streams && event.streams.length > 0
                 ? event.streams[0]
@@ -164,8 +197,8 @@ export const useJanusAudioStream = (serverUrl: string) => {
             }
           };
 
-          localPlugin.on('message', async (message: any) => {
-            console.log('Janus Message:', message);
+          // Explicitly typed the Janus message event
+          localPlugin.on('message', async (message: Record<string, any>) => {
             const rawMessage = message.plainMessage || message;
 
             if (rawMessage.janus === 'hangup') {
@@ -183,9 +216,6 @@ export const useJanusAudioStream = (serverUrl: string) => {
               rawMessage?.plugindata?.data || rawMessage?.plugin_data?.data;
 
             if (pluginData && pluginData.streaming === 'created') {
-              console.log(
-                `Mountpoint ${mountpointId} fully created! Now requesting to watch...`
-              );
               await localPlugin.send({
                 janus: 'message',
                 body: { request: 'watch', id: mountpointId },
@@ -195,7 +225,10 @@ export const useJanusAudioStream = (serverUrl: string) => {
             const jsep =
               message.jsep ||
               rawMessage.jsep ||
-              (message.get && message.get('jsep'));
+              (message.get &&
+                typeof message.get === 'function' &&
+                message.get('jsep'));
+
             if (jsep && jsep.type === 'offer') {
               const answer = await localPlugin.createAnswer(jsep, {
                 audio: true,

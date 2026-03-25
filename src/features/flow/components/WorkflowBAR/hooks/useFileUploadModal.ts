@@ -47,12 +47,15 @@ export const useFileUploadModal = (onClose: () => void) => {
   // File input handlers
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file?.type === 'application/json') {
+    if (file?.type === 'application/json' || file?.name?.endsWith('.json')) {
       await uploadJsonFile(file);
-    } else if (file?.name?.endsWith('.wav')) {
+    } else if (
+      file?.type?.startsWith('audio/') ||
+      file?.type?.startsWith('video/')
+    ) {
       await uploadAudioFile(file);
     } else {
-      toast.error('Please select a valid JSON file');
+      toast.error('Please drop a valid JSON, audio, or video file');
     }
   };
 
@@ -73,10 +76,13 @@ export const useFileUploadModal = (onClose: () => void) => {
     const file = e.dataTransfer.files?.[0];
     if (file?.type === 'application/json' || file?.name?.endsWith('.json')) {
       await uploadJsonFile(file);
-    } else if (file?.name?.endsWith('.wav')) {
+    } else if (
+      file?.type?.startsWith('audio/') ||
+      file?.type?.startsWith('video/')
+    ) {
       await uploadAudioFile(file);
     } else {
-      toast.error('Please drop a valid JSON file');
+      toast.error('Please drop a valid JSON, audio, or video file');
     }
   };
 

@@ -1,13 +1,10 @@
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { ClientData } from '@/features/nodes/types/NodeData';
+import { FlowAPI } from '@/lib/FlowAPI';
 import { graphProcessingActions } from '@/store/slices/graphProcessingSlice';
 import { useReactFlow } from '@xyflow/react';
-import axios from 'axios';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { env } from '@/config/env';
-
-const API_BASE_URL = env.VITE_API_BASE_URL;
 import { GraphTraversalService } from '../services/GraphTraversalService';
 import { ExecutionMode, RunRequest, useLiveSession } from './useLiveSession';
 
@@ -33,7 +30,7 @@ export const useGraphRunner = () => {
         return;
       }
 
-      if (mode != 'preview') {
+      if (mode !== 'preview') {
         const clients = nodes.find(node => node.type === 'clients');
         if (!clients) {
           toast.error('No clients found');
@@ -52,11 +49,33 @@ export const useGraphRunner = () => {
         }
       }
 
+      // --- SANITIZE PAYLOAD FOR THE C++ SERVER ---
+      // Strip out React Flow UI data (position, styles, selected, etc.)
+      const sanitizedNodes = nodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        data: node.data,
+      }));
+
+      const sanitizedEdges = edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle || null,
+        targetHandle: edge.targetHandle || null,
+      }));
+
+      const sanitizedStartNode = {
+        id: startNode.id,
+        type: startNode.type,
+        data: startNode.data,
+      };
+
       const payload: RunRequest = {
         flow: {
-          start_node: startNode,
-          nodes,
-          edges,
+          start_node: sanitizedStartNode,
+          nodes: sanitizedNodes,
+          edges: sanitizedEdges,
         },
       };
 
@@ -85,9 +104,9 @@ export const useGraphRunner = () => {
   const stopWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`${API_BASE_URL}/stop/?id=${activeSessionId}`);
+        await FlowAPI.stopSession(activeSessionId);
       } catch (err) {
-        toast.error(`Failed to stop session on server:${err}`);
+        toast.error(`Failed to stop session on server: ${err}`);
       }
       dispatch(graphProcessingActions.setJanusMount(null));
     }
@@ -97,9 +116,9 @@ export const useGraphRunner = () => {
   const pauseWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`${API_BASE_URL}/pause/?id=${activeSessionId}`);
+        await FlowAPI.pauseSession(activeSessionId);
       } catch (err) {
-        toast.error(`failed to pause session: ${err}`);
+        toast.error(`Failed to pause session: ${err}`);
       }
     }
   }, [activeSessionId]);
@@ -107,9 +126,9 @@ export const useGraphRunner = () => {
   const resumeWorkflow = useCallback(async () => {
     if (activeSessionId) {
       try {
-        await axios.post(`${API_BASE_URL}/resume/?id=${activeSessionId}`);
+        await FlowAPI.resumeSession(activeSessionId);
       } catch (err) {
-        toast.error(`failed to resume session: ${err}`);
+        toast.error(`Failed to resume session: ${err}`);
       }
     }
   }, [activeSessionId]);

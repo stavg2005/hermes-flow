@@ -7,9 +7,10 @@ import {
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface GraphProcessingState {
   isProcessing: boolean;
-  currentNodeID: string | null;
+  isPaused: boolean;
+  currentNodeId: string | null;
   activeSessionId: string | null;
-  JanusMountID: number | null;
+  janusMountId: number | null;
   error: string | null;
   stats: SessionStats | null;
   status: SessionStatus;
@@ -17,9 +18,10 @@ export interface GraphProcessingState {
 
 const initialState: GraphProcessingState = {
   isProcessing: false,
-  currentNodeID: null,
+  isPaused: false,
+  currentNodeId: null,
   activeSessionId: null,
-  JanusMountID: null,
+  janusMountId: null,
   error: null,
   stats: null,
   status: 'idle',
@@ -31,7 +33,8 @@ const graphProcessingSlice = createSlice({
   reducers: {
     startProcessing: state => {
       state.isProcessing = true;
-      state.currentNodeID = null;
+      state.isPaused = false;
+      state.currentNodeId = null;
       state.error = null;
       state.stats = null;
     },
@@ -39,35 +42,44 @@ const graphProcessingSlice = createSlice({
       state.activeSessionId = action.payload;
     },
     setCurrentNode: (state, action: PayloadAction<string>) => {
-      if (action.payload != '') state.currentNodeID = action.payload;
+      if (action.payload !== '') state.currentNodeId = action.payload;
     },
     setStats: (state, action: PayloadAction<SessionStats>) => {
       state.stats = action.payload;
     },
     setJanusMount: (state, action: PayloadAction<number | null>) => {
-      state.JanusMountID = action.payload;
+      state.janusMountId = action.payload;
+    },
+    setPaused: (state, action: PayloadAction<boolean>) => {
+      state.isPaused = action.payload;
     },
     setStatus: (state, action: PayloadAction<SessionStatus>) => {
       state.status = action.payload;
     },
     stopProcessing: state => {
       state.isProcessing = false;
-      state.currentNodeID = null;
+      state.isPaused = false;
+      state.currentNodeId = null;
       state.activeSessionId = null;
+      state.status = 'idle';
     },
 
     completeProcessing: state => {
       state.isProcessing = false;
-      state.currentNodeID = null;
+      state.isPaused = false;
+      state.currentNodeId = null;
       state.activeSessionId = null;
       state.error = null;
+      state.status = 'finished';
     },
 
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.isProcessing = false;
-      state.currentNodeID = null;
+      state.isPaused = false;
+      state.currentNodeId = null;
       state.activeSessionId = null;
+      state.status = 'error';
     },
   },
 });

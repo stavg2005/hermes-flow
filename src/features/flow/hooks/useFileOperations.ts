@@ -1,15 +1,27 @@
-import { useEdges, useNodes, useReactFlow } from '@xyflow/react';
+import { Edge, Node, useEdges, useNodes, useReactFlow } from '@xyflow/react';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
+
+export interface GraphExportData {
+  nodes: Node[];
+  edges: Edge[];
+  metadata?: {
+    version: string;
+    createdAt: string;
+    nodeCount: number;
+    edgeCount: number;
+  };
+}
 
 export const useFileOperations = () => {
   const nodes = useNodes();
   const edges = useEdges();
   const { setNodes, setEdges } = useReactFlow();
   const STORAGE_KEY = 'reactflow-workspace';
+
   const saveGraph = useCallback(() => {
     try {
-      const graphData = {
+      const graphData: GraphExportData = {
         nodes,
         edges,
         metadata: {
@@ -41,7 +53,7 @@ export const useFileOperations = () => {
   }, [nodes, edges]);
 
   const loadGraph = useCallback(
-    async (file: any) => {
+    async (file: GraphExportData) => {
       if (!file) {
         toast.error('No file selected');
         return;

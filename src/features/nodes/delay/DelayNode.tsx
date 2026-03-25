@@ -1,4 +1,4 @@
-import { GetProccecedNodeID, useAppSelector } from '@/app/store';
+import { GetCurrentNodeId, useAppSelector } from '@/app/store';
 import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import React, { useEffect, useState } from 'react';
 import { Progress } from '../../../components/ui/progress';
@@ -8,7 +8,7 @@ import { useProgressTimer } from './hooks/useProgressTimer';
 
 const DelayNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
   const [duration, setDuration] = useState(5);
-  const currentProcessingNode = useAppSelector(GetProccecedNodeID);
+  const currentProcessingNode = useAppSelector(GetCurrentNodeId);
   const { updateNodeData } = useReactFlow();
   const isBeingProcessed = currentProcessingNode === id;
 

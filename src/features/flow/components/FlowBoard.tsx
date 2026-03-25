@@ -1,22 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   CustomEdge,
   CustomNode,
   nodeTypes,
 } from '@/features/nodes/types/nodes';
 
+import { GetIsRunning, useAppSelector } from '@/app/store';
+import { useDebounceCallback } from '@/hooks/useDebounceCallback';
 import {
   Background,
   BackgroundVariant,
   ConnectionMode,
   ReactFlow,
-  ReactFlowInstance,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import React, { useState, useEffect } from 'react';
-import { GetIsRunning, useAppSelector } from '@/app/store';
+import React, { useEffect, useState } from 'react';
 import { useFlowHandlers } from '../hooks/useFlowEvents.ts';
 
 const initialNodes: CustomNode[] = [];
@@ -25,28 +24,22 @@ const STORAGE_KEY = 'reactflow-workspace';
 
 const FlowBoard: React.FC = () => {
   const isProcessing = useAppSelector(GetIsRunning);
-  const [_reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance | null>(null);
   const { onConnect, onDrop, onDragOver } = useFlowHandlers();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load from local storage on mount
   useEffect(() => {
     const loadWorkflow = () => {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const {
-            nodes: savedNodes,
-            edges: savedEdges,
-            // viewport,
-          } = JSON.parse(saved);
+          const { nodes: savedNodes, edges: savedEdges } = JSON.parse(saved);
           setNodes(savedNodes || []);
           setEdges(savedEdges || []);
         } else {
-          // Use initial data if nothing saved
           setNodes(initialNodes);
           setEdges(initialEdges);
         }
@@ -62,28 +55,29 @@ const FlowBoard: React.FC = () => {
     loadWorkflow();
   }, [setNodes, setEdges]);
 
-  // Save to localStorage whenever nodes or edges change
+  // Create a stable, debounced save function
+  const debouncedSave = useDebounceCallback(
+    (currentNodes: CustomNode[], currentEdges: CustomEdge[]) => {
+      try {
+        const workflow = {
+          nodes: currentNodes,
+          edges: currentEdges,
+          timestamp: new Date().toISOString(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(workflow));
+      } catch (error) {
+        console.error('Error saving workflow:', error);
+      }
+    },
+    500
+  );
+
+  // Trigger the debounced function whenever nodes or edges change
   useEffect(() => {
     if (!isLoading && (nodes.length > 0 || edges.length > 0)) {
-      const saveWorkflow = () => {
-        try {
-          const workflow = {
-            nodes,
-            edges,
-            timestamp: new Date().toISOString(),
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(workflow));
-          console.log('Workflow saved');
-        } catch (error) {
-          console.error('Error saving workflow:', error);
-        }
-      };
-
-      // Debounce the save operation
-      const timeoutId = setTimeout(saveWorkflow, 500);
-      return () => clearTimeout(timeoutId);
+      debouncedSave(nodes, edges);
     }
-  }, [nodes, edges, isLoading]);
+  }, [nodes, edges, isLoading, debouncedSave]);
 
   return (
     <div
@@ -102,7 +96,7 @@ const FlowBoard: React.FC = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onInit={setReactFlowInstance}
+        onInit={() => {}}
         defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
         connectionMode={ConnectionMode.Loose}
         fitViewOptions={{

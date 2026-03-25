@@ -3,39 +3,51 @@ import {
   FileOptionsNodeData,
 } from '@/features/nodes/types/NodeData';
 import { useNodeConnections, useNodesData, useReactFlow } from '@xyflow/react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 export const useOptions = (nodeId: string) => {
   const connections = useNodeConnections({ handleType: 'target' });
-  const connectedNodesData = useNodesData(
-    connections.map(connection => connection.source)
+
+  // OPTIMIZATION 1: Memoize source IDs
+  const sourceIds = useMemo(
+    () => connections.map(connection => connection.source),
+    [connections]
   );
 
+  const connectedNodesData = useNodesData(sourceIds);
   const { updateNodeData } = useReactFlow();
 
   const processedData = useMemo(() => {
-    const FileOptionsNodeData = connectedNodesData.find(
+    if (!connectedNodesData) return null;
+
+    const nodesArray = Array.isArray(connectedNodesData)
+      ? connectedNodesData
+      : [connectedNodesData];
+
+    const fileOptionsNode = nodesArray.find(
       nodeData => nodeData?.type === 'fileOptions'
     );
-    if (!FileOptionsNodeData)
-      return null;
+
+    if (!fileOptionsNode) return null;
+
     return {
-      gain: (FileOptionsNodeData.data?.gain) || 1
+      gain: (fileOptionsNode.data?.gain as number) ?? 1,
     };
   }, [connectedNodesData]);
 
-  const updateFileInputData = useCallback(
-    (data: FileOptionsNodeData) => {
-      const FileInputData: Partial<FileInputNodeData> = {
-        options: data,
-      };
-      updateNodeData(nodeId, FileInputData);
-    },
-    [nodeId, updateNodeData]
-  );
+  // OPTIMIZATION 2: Compare specific values before dispatch
+  const prevGainRef = useRef<number | null>(null);
+
   useEffect(() => {
-    updateFileInputData(processedData as FileOptionsNodeData);
-  }, [processedData, updateFileInputData]);
+    if (processedData && prevGainRef.current !== processedData.gain) {
+      prevGainRef.current = processedData.gain;
+
+      const fileInputData: Partial<FileInputNodeData> = {
+        options: processedData as FileOptionsNodeData,
+      };
+      updateNodeData(nodeId, fileInputData);
+    }
+  }, [processedData, nodeId, updateNodeData]);
 
   return processedData;
-}
+};

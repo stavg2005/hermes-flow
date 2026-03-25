@@ -95,54 +95,43 @@ export const useLoadJsonFileQuery = (fileName?: string) => {
 };
 
 // ------------------
+// 🔹 Shared MinIO upload factory
+// ------------------
+function useMinIOUploadMutation(
+  toastId: string,
+  label: string,
+  cacheKeysToInvalidate: readonly (typeof qk.jsonFiles | typeof qk.audioFiles)[]
+) {
+  const qc = useQueryClient();
+  const { uploadToMinIO } = useMinIOOperations();
+
+  return useMutation({
+    mutationFn: (file: File) => uploadToMinIO(file),
+    onMutate: () =>
+      toast.info(`Uploading ${label}...`, { toastId, autoClose: false }),
+    onSuccess: () => {
+      toast.dismiss(toastId);
+      toast.success(`${label} uploaded`);
+      cacheKeysToInvalidate.forEach(key => qc.invalidateQueries({ queryKey: key }));
+    },
+    onError: (err: ApiErrorResponse) => {
+      toast.dismiss(toastId);
+      toast.error(err.message || `${label} upload failed`);
+    },
+  });
+}
+
+// ------------------
 // 🔹 Upload workflow (to MinIO)
 // ------------------
-export const useUploadWorkflowMutation = () => {
-  const qc = useQueryClient();
-  const { uploadToMinIO } = useMinIOOperations();
+export const useUploadWorkflowMutation = () =>
+  useMinIOUploadMutation('upload-workflow', 'Workflow', [qk.jsonFiles]);
 
-  return useMutation({
-    mutationFn: (file: File) => uploadToMinIO(file),
-    onMutate: () =>
-      toast.info('Uploading workflow...', {
-        toastId: 'upload-workflow',
-        autoClose: false,
-      }),
-    onSuccess: () => {
-      toast.dismiss('upload-workflow');
-      toast.success('Workflow uploaded');
-      qc.invalidateQueries({ queryKey: qk.jsonFiles });
-      qc.invalidateQueries({ queryKey: qk.audioFiles });
-    },
-    onError: (err: ApiErrorResponse) => {
-      toast.dismiss('upload-workflow');
-      toast.error(err.message || 'Workflow upload failed');
-    },
-  });
-};
-
-export const useUploadAudioFileMutation = () => {
-  const qc = useQueryClient();
-  const { uploadToMinIO } = useMinIOOperations();
-
-  return useMutation({
-    mutationFn: (file: File) => uploadToMinIO(file),
-    onMutate: () =>
-      toast.info('Uploading workflow...', {
-        toastId: 'upload-workflow',
-        autoClose: false,
-      }),
-    onSuccess: () => {
-      toast.dismiss('upload-workflow');
-      toast.success('Workflow uploaded');
-      qc.invalidateQueries({ queryKey: qk.jsonFiles });
-    },
-    onError: (err: ApiErrorResponse) => {
-      toast.dismiss('upload-workflow');
-      toast.error(err.message || 'Workflow upload failed');
-    },
-  });
-};
+// ------------------
+// 🔹 Upload audio file (to MinIO)
+// ------------------
+export const useUploadAudioFileMutation = () =>
+  useMinIOUploadMutation('upload-audio', 'Audio file', [qk.audioFiles]);
 // ------------------
 // 🔹 Delete workflow from MinIO
 // ------------------

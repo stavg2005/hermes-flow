@@ -16,7 +16,9 @@ const api = axios.create({
 
 api.interceptors.request.use(
   config => {
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
+    if (import.meta.env.DEV) {
+      console.log('API Request:', config.method?.toUpperCase(), config.url);
+    }
     return config;
   },
   (error: AxiosError) => {
@@ -26,7 +28,9 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log('API Response:', response.status, response.data);
+    if (import.meta.env.DEV) {
+      console.log('API Response:', response.status, response.data);
+    }
     return response;
   },
   (error: AxiosError) => {

@@ -39,7 +39,7 @@ const FileUploadModal: FC<FileUploadModalProps> = ({
         <input
           type='file'
           ref={fileInputRef}
-          accept='.wav'
+          accept='audio/*, video/*, application/json, .json'
           onChange={handleFileSelect}
           className='hidden'
         />

@@ -1,11 +1,11 @@
 import { useMixerData } from './hooks/useMixerData';
-import { GetProccecedNodeID, useAppSelector } from '@/app/store';
+import { GetCurrentNodeId, useAppSelector } from '@/app/store';
 import { type NodeProps } from '@xyflow/react';
 import React from 'react';
 import { MixerGrid } from './MixerGrid';
 import { MixerHandle } from './MixerHandle';
 const MixerNodeComponent: React.FC<NodeProps> = ({ id, isConnectable }) => {
-  const currentProcessingNode = useAppSelector(GetProccecedNodeID);
+  const currentProcessingNode = useAppSelector(GetCurrentNodeId);
   const receivedData = useMixerData(id);
   const isProcessing = currentProcessingNode === id;
 

@@ -1,24 +1,31 @@
 import {
-  FileInputNodeData,
   FileOptionsNodeData,
   MixerNodeData,
 } from '@/features/nodes/types/NodeData';
 import { useNodeConnections, useNodesData, useReactFlow } from '@xyflow/react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 export const useMixerData = (nodeId: string) => {
   const connections = useNodeConnections({ handleType: 'target' });
-  const connectedNodesData = useNodesData(
-    connections.map(connection => connection.source)
+
+  // OPTIMIZATION 1: Memoize the array of source IDs so useNodesData doesn't thrash
+  const sourceIds = useMemo(
+    () => connections.map(connection => connection.source),
+    [connections]
   );
 
-  const { updateNodeData: updateNodeDataReactFlow } = useReactFlow();
+  const connectedNodesData = useNodesData(sourceIds);
+  const { updateNodeData } = useReactFlow();
 
   const processedData = useMemo(() => {
-    console.log(
-      'broooo i got updated with ' + JSON.stringify(connectedNodesData)
-    );
-    const fileInputNodes = connectedNodesData.filter(
+    if (!connectedNodesData) return [];
+
+    // Defensive check: ensure we are iterating over an array
+    const nodesArray = Array.isArray(connectedNodesData)
+      ? connectedNodesData
+      : [connectedNodesData];
+
+    const fileInputNodes = nodesArray.filter(
       nodeData => nodeData?.type === 'fileInput'
     );
 
@@ -29,20 +36,21 @@ export const useMixerData = (nodeId: string) => {
     }));
   }, [connectedNodesData]);
 
-  const updateMixerData = useCallback(
-    (data: FileInputNodeData[]) => {
-      const mixerData: MixerNodeData = {
-        files: data,
-      };
-      updateNodeDataReactFlow(nodeId, mixerData);
-    },
-    [nodeId, updateNodeDataReactFlow]
-  );
+  // OPTIMIZATION 2: Deep compare before dispatching to prevent infinite render loops
+  const prevDataRef = useRef<string>('');
 
-  // Only update when actual connection data changes
   useEffect(() => {
-    updateMixerData(processedData);
-  }, [processedData, updateMixerData]);
+    const dataString = JSON.stringify(processedData);
+
+    if (prevDataRef.current !== dataString) {
+      prevDataRef.current = dataString;
+
+      const mixerData: MixerNodeData = {
+        files: processedData,
+      };
+      updateNodeData(nodeId, mixerData);
+    }
+  }, [processedData, nodeId, updateNodeData]);
 
   return processedData;
 };

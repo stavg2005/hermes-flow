@@ -1,4 +1,4 @@
-import { GetProccecedNodeID, useAppSelector } from '@/app/store';
+import { GetCurrentNodeId, useAppSelector } from '@/app/store';
 import { useAudioFilesQuery } from '@/hooks/UseFlowAPI';
 import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import clsx from 'clsx';
@@ -39,7 +39,7 @@ const INPUT = {
 const FileInputNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
   const { updateNodeData } = useReactFlow();
   const { data: allFiles = [], isFetching } = useAudioFilesQuery();
-  const isProcessing = useAppSelector(GetProccecedNodeID) === id;
+  const isProcessing = useAppSelector(GetCurrentNodeId) === id;
 
   const selectedFile = String(data?.fileName ?? '');
   const names = allFiles.map(f => f.fileName);

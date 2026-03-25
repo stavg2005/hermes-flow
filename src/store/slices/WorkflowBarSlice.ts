@@ -1,17 +1,13 @@
-import { FileMetadata } from '@/features/flow/components/WorkflowBAR/hooks/useMinIOOperations';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+
 export interface WorkflowBarState {
   isopen: boolean;
   isuploadopen: boolean;
-  filesMetaData: FileMetadata[];
-  dataFetched: boolean;
 }
 
 const initialState: WorkflowBarState = {
   isopen: false,
   isuploadopen: false,
-  filesMetaData: [],
-  dataFetched: false,
 };
 
 const WorkflowBarSlice = createSlice({
@@ -23,12 +19,6 @@ const WorkflowBarSlice = createSlice({
     },
     CloseModel: state => {
       state.isopen = false;
-    },
-    Setfiles: (state, action: PayloadAction<FileMetadata[]>) => {
-      state.filesMetaData = action.payload;
-    },
-    setDataFetched: (state, action: PayloadAction<boolean>) => {
-      state.dataFetched = action.payload;
     },
   },
 });
