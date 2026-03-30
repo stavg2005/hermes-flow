@@ -1,69 +1,92 @@
-# React + TypeScript + Vite
+Hermes-Flow Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend application for the Hermes-Flow Audio Over IP system. This client provides a modern, node-based, drag-and-drop web interface that allows operators to configure, manage, and monitor real-time audio processing graphs without writing any code.
 
-Currently, two official plugins are available:
+Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Visual Workflow Builder: Build complex audio processing and routing workflows using an intuitive drag-and-drop node interface.
 
-## Expanding the ESLint configuration
+Real-Time Monitoring: Track active audio sessions and DSP engine status via WebSocket integration.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Media Management: Upload and manage audio files directly from the browser, integrated with the Node.js middleware and MinIO storage layer.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Dynamic Node Configuration: Adjust parameters for DSP components (e.g., Mixers, Pitch Shifters, File Inputs) on the fly.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Responsive UI: Built with a clean, technology-focused design tailored for operational environments.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Tech Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Framework: React
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Language: TypeScript
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Build Tool: Vite
+
+Styling: Tailwind CSS
+
+State Management: Redux Toolkit
+
+Component Library: shadcn/ui (Radix UI primitives)
+
+Prerequisites
+
+Node.js (v18 or higher recommended)
+
+npm (Node Package Manager)
+
+Installation and Setup
+
+Install the project dependencies:
+
+npm install
+
+
+Configure your environment variables. Create a .env.development file in the root directory based on the provided .env.example file:
+
+VITE_API_URL=http://localhost:3000
+VITE_WS_URL=ws://localhost:8080
+VITE_MINIO_URL=http://localhost:9000
+
+
+Start the development server:
+
+npm run dev
+
+
+Open your browser and navigate to the URL provided by Vite (typically http://localhost:5173).
+
+Available Scripts
+
+npm run dev: Starts the local development server with Hot Module Replacement (HMR).
+
+npm run build: Compiles the TypeScript code and builds the application for production into the dist folder.
+
+npm run lint: Runs ESLint to analyze the code for potential errors and style violations.
+
+npm run preview: Boots up a local web server to serve the production build created by npm run build.
+
+Project Structure
+
+The project follows a feature-sliced design architecture to maintain modularity and scalability:
+
+/src/app: Global application setup, Redux store configuration, and main entry points.
+
+/src/components: Reusable, generic UI components (e.g., buttons, modals, dropdowns).
+
+/src/features: Domain-specific modules containing their own components, hooks, and types (e.g., flow, nodes).
+
+/src/hooks: Global custom React hooks.
+
+/src/lib: Utility functions and generic API wrappers.
+
+/src/store: Redux slices for global state management.
+
+/src/config: Application-wide configuration and environment variable validation.
+
+Development Guidelines
+
+Typing: Ensure all new components and functions are strictly typed using TypeScript interfaces or types.
+
+Styling: Use Tailwind CSS utility classes for styling. Avoid writing custom CSS files unless absolutely necessary.
+
+State: Keep component state local where possible. Use Redux primarily for global state that needs to be accessed across different feature modules.
