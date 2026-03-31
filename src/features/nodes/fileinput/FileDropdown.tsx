@@ -48,9 +48,6 @@ const FileDropdown = memo<FileDropdownProps>(
             {isLoading ? 'Loading...' : selectedFile || 'Choose file'}
           </span>
 
-          {/* Debug info - remove this later */}
-          <span className='text-xs text-gray-400 ml-2'>({files.length})</span>
-
           <svg
             className={`w-4 h-4 ml-2 transition-transform duration-200 flex-shrink-0 ${
               isOpen ? 'rotate-180' : ''

@@ -1,6 +1,6 @@
 import { Handle, NodeProps, Position, useReactFlow } from '@xyflow/react';
 import React, { KeyboardEvent, useState } from 'react';
-const FileOptions: React.FC<NodeProps> = ({ id }) => {
+const FileOptions: React.FC<NodeProps> = ({ id, data }) => {
   const handleOptionsChange = (gain: number, pitch_shift: number) => {
     setGain(gain);
     setPitchShift(pitch_shift);
@@ -15,14 +15,10 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
       const value = Number((e.target as HTMLInputElement).value);
 
       if (!isNaN(value)) {
-        // 3. Apply validation depending on what we are editing
         if (field === 'gain' && value >= 0) {
-          // Pass the new gain, but keep the current pitchShift from state
           handleOptionsChange(value, pitch_shift);
           (e.target as HTMLInputElement).value = '';
         } else if (field === 'pitch_shift') {
-          // Pass the current gain from state, and the new pitch shift
-          // Notice we don't block negative numbers or 0 here!
           handleOptionsChange(gain, value);
           (e.target as HTMLInputElement).value = '';
         }
@@ -69,7 +65,7 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
               className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
               onKeyDown={e => handleKeyPress(e, 'gain')}
               onMouseDown={e => e.stopPropagation()}
-              placeholder={gain.toString()}
+              placeholder={data?.gain?.toString() || '1'}
             />
           </div>
         </div>
@@ -86,7 +82,7 @@ const FileOptions: React.FC<NodeProps> = ({ id }) => {
                 className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
                 onKeyDown={e => handleKeyPress(e, 'pitch_shift')}
                 onMouseDown={e => e.stopPropagation()}
-                placeholder={pitch_shift.toString()}
+                placeholder={data?.pitch_shift?.toString() || '1'}
               />
             </div>
           </div>

@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { store } from './store';
+import { useEffect, useState } from 'react';
 
 // Lazy load components
 const FlowBoard = lazy(() => import('../features/flow/components/FlowBoard'));
@@ -20,6 +21,54 @@ const LoadingSpinner = memo(() => (
     </div>
   </div>
 ));
+
+const DesktopOnlyWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isTouchDevice = navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 1024;
+
+      if (
+        /android|iphone|ipad|ipod/i.test(userAgent) ||
+        (isTouchDevice && isSmallScreen)
+      ) {
+        setIsMobile(true);
+      }
+    };
+
+    checkDevice();
+  }, []);
+
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          backgroundColor: '#121212',
+          color: 'white',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '20px',
+        }}
+      >
+        <h1>💻 Desktop Required</h1>
+        <p>
+          Hermes-Flow requires a desktop browser for real-time audio processing
+          and system architecture tools.
+        </p>
+        <p>Please switch to a computer to continue.</p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
 
 LoadingSpinner.displayName = 'LoadingSpinner';
 
@@ -58,14 +107,16 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ReactFlowProvider>
           <Suspense fallback={<LoadingSpinner />}>
-            <div className='h-screen flex bg-slate-950'>
-              <Sidebar />
-              <TopBar />
+            <DesktopOnlyWrapper>
+              <div className='h-screen flex bg-slate-950'>
+                <Sidebar />
+                <TopBar />
 
-              <div className='flex-1 relative'>
-                <FlowBoard />
+                <div className='flex-1 relative'>
+                  <FlowBoard />
+                </div>
               </div>
-            </div>
+            </DesktopOnlyWrapper>
           </Suspense>
         </ReactFlowProvider>
 
