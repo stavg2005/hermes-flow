@@ -8,18 +8,18 @@ const TopBar: React.FC = () => {
   const running = useAppSelector(GetIsRunning);
 
   return (
-    <div className='fixed top-0 left-0 right-0 h-20 bg-transparent z-50 flex items-center px-6'>
-      <div className='flex-1'></div>
+    <div className='fixed top-0 left-0 right-0 h-auto md:h-20 bg-transparent z-50 flex flex-col md:flex-row items-center justify-between px-2 md:px-6 py-4 md:py-0 gap-4 md:gap-0 pointer-events-none'>
+      <div className='flex-1 hidden md:block pointer-events-auto'></div>
 
-      <div className='absolute left-1/2 transform -translate-x-1/2'>
+      <div className='flex justify-center md:absolute md:left-1/2 md:transform md:-translate-x-1/2 pointer-events-auto'>
         <FileControls />
       </div>
 
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center justify-end flex-1 gap-3 pointer-events-auto w-full md:w-auto px-4 md:px-0'>
         <ProcessingControls />
       </div>
 
-      <div className='absolute top-full right-0 mt-4'>
+      <div className='absolute top-full right-4 md:right-0 mt-4 pointer-events-auto'>
         {running && <AudioDashboard />}
       </div>
     </div>

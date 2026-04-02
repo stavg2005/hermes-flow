@@ -12,8 +12,8 @@ const MixerNodeComponent: React.FC<NodeProps> = ({ id, isConnectable }) => {
   return (
     <div
       className={`
-        relative bg-[#373333] rounded-3xl p-2 min-w-[230px] min-h-[245px] transition-all duration-200
-        ${isProcessing ? 'border-4 border-white' : ''}
+        relative animate-drop-in bg-zinc-800 rounded-3xl p-2 min-w-64 max-w-sm min-h-60 transition-all duration-200 border-4
+        ${isProcessing ? 'border-white' : 'border-transparent'}
       `}
     >
       <MixerHandle
@@ -29,7 +29,7 @@ const MixerNodeComponent: React.FC<NodeProps> = ({ id, isConnectable }) => {
       />
 
       <div className='text-center'>
-        <h3 className='text-white text-[28px] font-bold italic font-inter'>
+        <h3 className='text-white text-3xl font-bold italic font-inter mb-2'>
           mixer
         </h3>
       </div>

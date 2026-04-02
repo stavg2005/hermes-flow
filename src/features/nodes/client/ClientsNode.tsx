@@ -11,7 +11,7 @@ const ClientsNode: React.FC<NodeProps> = ({ id, data }) => {
   );
   const isProcessing = useAppSelector(GetIsRunning);
   return (
-    <div className='bg-[#373333] rounded-2xl p-4 w-[300px]'>
+    <div className='bg-zinc-800 rounded-2xl p-4 w-full min-w-72 max-w-[300px] animate-drop-in'>
       <div className='text-center mb-4'>
         <h2 className='text-white text-2xl font-bold italic font-sans'>
           Clients
@@ -22,17 +22,7 @@ const ClientsNode: React.FC<NodeProps> = ({ id, data }) => {
         id='clients-inputs'
         type='target'
         position={Position.Left}
-        style={{
-          position: 'absolute',
-          left: '-12px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: '24px',
-          height: '24px',
-          background: '#709DFF',
-          borderRadius: '50%',
-          border: 'none',
-        }}
+        className='!absolute !-left-3 !top-1/2 !-translate-y-1/2 !w-6 !h-6 !bg-blue-400 !rounded-full !border-none'
       />
       <div className='space-y-3'>
         {clients.map((client: ClientData) => (

@@ -15,13 +15,13 @@ const DurationInput = memo<{
   };
 
   return (
-    <div className='flex flex-row'>
-      <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
+    <div className='flex flex-row items-center justify-between gap-4'>
+      <p className='text-white text-base font-bold italic font-sans opacity-90'>
         duration:
       </p>
-      <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-20'>
+      <div className='w-24 h-8 bg-zinc-900/60 focus-within:bg-zinc-900 rounded-full relative overflow-hidden cursor-pointer transition-colors border border-transparent focus-within:border-blue-400/50'>
         <input
-          className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
+          className='w-full h-full bg-transparent text-white text-base font-bold italic font-sans opacity-90 px-4 border-none outline-none rounded-full text-center'
           onKeyDown={handleKeyPress}
           onMouseDown={e => e.stopPropagation()}
           placeholder={duration.toString()}

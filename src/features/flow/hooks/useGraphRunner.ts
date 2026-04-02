@@ -23,7 +23,13 @@ export const useGraphRunner = () => {
 
       const nodes = getNodes();
       const edges = getEdges();
-
+      const unknownFileInput = nodes
+        .filter(node => node.type === 'fileInput')
+        .find(node => node.data.fileName === 'unknown');
+      if (unknownFileInput) {
+        toast.error('Unknown file input found');
+        return;
+      }
       const startNode = GraphTraversalService.findStartNode(nodes, edges);
       if (!startNode) {
         toast.error('No valid start node found (Input, Mixer, or Delay)');

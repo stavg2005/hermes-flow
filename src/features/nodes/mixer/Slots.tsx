@@ -2,7 +2,7 @@ import { FileInputNodeData } from '@/features/nodes/types/NodeData';
 import { memo } from 'react';
 
 export const EmptySlot = memo(() => (
-  <div className='bg-[#433E3E] rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-gray-500 transition-colors'>
+  <div className='bg-zinc-700 rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-zinc-600 transition-colors'>
     <div className='absolute inset-0 bg-gradient-to-br from-gray-500/20 to-transparent' />
     <div className='absolute inset-0 flex items-center justify-center'>
       <span className='text-gray-500 text-xs'>File Input</span>
@@ -19,7 +19,7 @@ interface FileSquareProps {
 export const FileSquare = memo<FileSquareProps>(({ item }) => (
   // This component only re-renders when 'item' actually changes
   // If parent re-renders but 'item' is the same, this component stays as-is
-  <div className='bg-[#433E3E] rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-gray-500 transition-colors'>
+  <div className='bg-zinc-700 rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-zinc-600 transition-colors'>
     <div className='absolute inset-0 bg-gradient-to-br from-gray-500/20 to-transparent'>
       <div className='flex items-center justify-center gap-1.5 h-16 w-20 mx-auto mt-1'>
         <div className='bg-white rounded-full w-3 h-7 animate-pop-in-1' />
@@ -39,7 +39,7 @@ export const FileSquare = memo<FileSquareProps>(({ item }) => (
 
 export const PlusButton = memo(() => (
   <div
-    className='bg-[#433E3E] rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-gray-500 transition-colors flex items-center justify-center'
+    className='bg-zinc-700 rounded-2xl aspect-square relative overflow-hidden group cursor-pointer hover:bg-zinc-600 transition-colors flex items-center justify-center'
     title='Connect File Input'
   >
     <div className='absolute inset-0 bg-gradient-to-br from-gray-500/20 to-transparent' />

@@ -44,25 +44,13 @@ const DesktopOnlyWrapper = ({ children }: { children: React.ReactNode }) => {
 
   if (isMobile) {
     return (
-      <div
-        style={{
-          backgroundColor: '#121212',
-          color: 'white',
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '20px',
-        }}
-      >
-        <h1>💻 Desktop Required</h1>
-        <p>
+      <div className="flex flex-col h-screen items-center justify-center text-center p-5 bg-zinc-900 border-border text-zinc-50">
+        <h1 className="text-3xl font-bold mb-4 font-sans italic">💻 Desktop Required</h1>
+        <p className="max-w-md text-zinc-400 mb-2">
           Hermes-Flow requires a desktop browser for real-time audio processing
           and system architecture tools.
         </p>
-        <p>Please switch to a computer to continue.</p>
+        <p className="max-w-md text-zinc-400">Please switch to a computer to continue.</p>
       </div>
     );
   }
@@ -99,6 +87,7 @@ const toastConfig = {
   draggable: true,
   pauseOnHover: true,
   theme: 'dark' as const,
+  toastClassName: '!bg-slate-900/90 !backdrop-blur-md !border !border-slate-800 !rounded-xl !shadow-2xl',
 };
 
 function App() {

@@ -13,7 +13,7 @@ const WorkflowItem: FC<WorkflowItemProps> = ({ workflow, onDelete }) => {
   return (
     <div className='flex flex-col items-center group'>
       <div
-        className={`relative bg-[#433e3e] rounded-lg p-4 h-32 md:h-44 w-full flex items-center justify-center hover:bg-slate-600 transition-colors cursor-pointer ${
+        className={`relative bg-zinc-800 rounded-lg p-4 h-32 md:h-44 w-full flex items-center justify-center hover:bg-slate-700 transition-colors cursor-pointer ${
           isLoading ? 'opacity-50' : ''
         }`}
         onClick={() => handleLoadWorkflow(workflow.fileName)}

@@ -166,7 +166,7 @@ app.post(
                 .save(outputPath);
             });
 
-            const stat = fs.statSync(outputPath);
+            fs.statSync(outputPath);
 
             // העלאת הקובץ המומר ל-MinIO
             await minioClient.fPutObject(

@@ -48,13 +48,13 @@ const NodeLibrarySidebar: React.FC<SidebarProps> = ({ activeItem }) => {
   ];
 
   return (
-    <div className=' fixed p-1 top-60 min-h-fit max-h-[80vh] scale-120 ml-10 w-54 bg-[#1b333c]/50 backdrop-blur-md rounded-2xl border border-slate-700/50 z-40 overflow-y-auto'>
-      <div className='p-5 position-relative '>
-        <img src='/media/logo.png' alt='Hermes Logo' className='w-45 h-25 ' />
+    <div className='absolute left-4 top-1/2 -translate-y-1/2 min-h-fit max-h-[80vh] w-64 bg-slate-900/40 backdrop-blur-md rounded-2xl border border-slate-700/50 z-40 overflow-y-auto flex flex-col p-2 shadow-2xl transition-all'>
+      <div className='p-4 mb-2 mt-2 flex justify-center'>
+        <img src='/media/logo.png' alt='Hermes Logo' className='w-40 h-auto object-contain' />
       </div>
 
-      <div className=''>
-        <div className='space-y-1'>
+      <div className='px-2 pb-2'>
+        <div className='space-y-2'>
           {sidebarItems.map(item => (
             <SidebarItem
               key={item.id}

@@ -26,8 +26,8 @@ const DelayNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
 
   return (
     <div
-      className={`relative bg-[#373333] rounded-3xl p-4 min-w-[230px] min-h-[96px] transition-all duration-200  ${
-        isBeingProcessed ? 'border-4 border-white' : ''
+      className={`relative animate-drop-in bg-zinc-800 rounded-3xl p-4 min-w-64 max-w-xs min-h-24 transition-all duration-200 border-4 ${
+        isBeingProcessed ? 'border-white' : 'border-transparent'
       }`}
     >
       <Handle
@@ -35,12 +35,12 @@ const DelayNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
         id='delay-input'
         position={Position.Left}
         style={{
-          left: '-5px',
+          left: '-15px',
           top: '50%',
           transform: 'translateY(-50%)',
           width: '24px',
           height: '24px',
-          background: '#709DFF',
+          background: '#60a5fa',
           borderRadius: '50%',
           border: 'none',
         }}
@@ -55,14 +55,14 @@ const DelayNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
           top: '70px',
           width: '24px',
           height: '24px',
-          background: '#709DFF',
+          background: '#60a5fa',
           borderRadius: '50%',
-          boxShadow: '0 0 15px rgba(112, 157, 255, 0.6)',
+          boxShadow: '0 0 15px rgba(96, 165, 250, 0.6)',
           border: 'none',
         }}
       />
 
-      <h3 className='text-white text-[24px] font-bold italic font-sans leading-tight'>
+      <h3 className='text-white text-2xl font-bold italic font-sans leading-tight mb-2'>
         Delay
       </h3>
       <DurationInput
@@ -71,10 +71,10 @@ const DelayNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
       />
 
       <div className='flex items-center justify-between gap-1'>
-        <div className='flex-1'>
+        <div className='flex-1 py-2'>
           <Progress
             value={progress}
-            className='h-8 bg-[#221C1C] [&>div]:bg-[#193643]'
+            className='h-6 bg-zinc-900 [&>div]:bg-blue-500 rounded-full'
           />
         </div>
       </div>

@@ -22,7 +22,7 @@ const WorkflowBar: FC<WorkflowBarProps> = ({ onClose }) => {
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
-      <div className='relative bg-[#1b333c]/90 backdrop-blur-md text-white p-6 md:p-8 rounded-3xl max-w-6xl w-full mx-4 min-h-[40vh] max-h-[90vh] overflow-auto'>
+      <div className='relative bg-slate-900/90 backdrop-blur-md text-white p-6 md:p-8 rounded-3xl max-w-6xl w-full mx-4 min-h-[40vh] max-h-[90vh] overflow-auto'>
         <Header
           activeTab={activeTab}
           onTabChange={setActiveTab}

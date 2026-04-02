@@ -37,7 +37,7 @@ const FileDropdown = memo<FileDropdownProps>(
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={isLoading}
-          className='flex items-center justify-between w-full px-3 py-2 bg-[#221C1C] text-white rounded-xl font-medium italic font-inter text-sm transition-all duration-200 hover:bg-[#2a2424] focus:outline-none focus:ring-2 focus:ring-[#709DFF] disabled:opacity-50'
+          className='flex items-center justify-between w-full px-3 py-2 bg-zinc-900 text-white rounded-xl font-medium italic font-inter text-sm transition-all duration-200 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50'
           aria-expanded={isOpen}
           aria-haspopup='listbox'
           aria-label={
@@ -68,7 +68,7 @@ const FileDropdown = memo<FileDropdownProps>(
 
         {isOpen && (
           <div
-            className='absolute top-full left-0 right-0 mt-1 bg-[#221C1C] rounded-xl shadow-xl border border-[#383434] overflow-hidden z-50 max-h-60 overflow-y-auto'
+            className='absolute top-full left-0 right-0 mt-1 bg-zinc-900 rounded-xl shadow-xl border border-zinc-700 overflow-hidden z-50 max-h-60 overflow-y-auto'
             role='listbox'
             aria-label='File selection'
           >
@@ -83,7 +83,7 @@ const FileDropdown = memo<FileDropdownProps>(
                   key={`${file}-${index}`} // Use index to ensure uniqueness
                   onClick={() => handleFileSelect(file.fileName)}
                   onKeyDown={e => handleKeyDown(e, file.fileName)}
-                  className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-[#383434] focus:bg-[#383434] focus:outline-none'
+                  className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-zinc-800 focus:bg-zinc-800 focus:outline-none'
                   role='option'
                   aria-selected={selectedFile === file.fileName}
                 >
@@ -92,7 +92,7 @@ const FileDropdown = memo<FileDropdownProps>(
               ))}
               <button
                 onClick={() => setUploadOpen(true)}
-                className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-[#383434] focus:bg-[#383434] focus:outline-none'
+                className='block w-full text-left px-3 py-2 text-white font-medium italic font-inter text-sm transition-all duration-150 hover:bg-zinc-800 focus:bg-zinc-800 focus:outline-none'
                 role='option'
               >
                 <span className='truncate'>Upload file</span>

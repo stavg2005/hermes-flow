@@ -119,7 +119,7 @@ const FlowBoard: React.FC = () => {
           variant={BackgroundVariant.Dots}
           gap={35}
           color='#ffffff'
-          style={{ opacity: 0.5 }}
+          style={{ opacity: 0.15 }}
         />
       </ReactFlow>
     </div>

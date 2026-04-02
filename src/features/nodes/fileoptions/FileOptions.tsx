@@ -30,7 +30,7 @@ const FileOptions: React.FC<NodeProps> = ({ id, data }) => {
   const [gain, setGain] = useState(1.0);
   const [pitch_shift, setPitchShift] = useState(1.0);
   return (
-    <div className='bg-[#373333] rounded-3xl p-4 min-w-[200px] '>
+    <div className='bg-zinc-800 rounded-3xl p-4 min-w-64 max-w-xs shadow-xl animate-drop-in'>
       <Handle
         id='options-output'
         type='source'
@@ -42,7 +42,7 @@ const FileOptions: React.FC<NodeProps> = ({ id, data }) => {
           transform: 'translateY(-50%)',
           width: '24px',
           height: '24px',
-          background: '#709DFF',
+          background: '#60a5fa',
           borderRadius: '50%',
           border: 'none',
         }}
@@ -53,16 +53,16 @@ const FileOptions: React.FC<NodeProps> = ({ id, data }) => {
       </div>
 
       {/* Option rows */}
-      <div className='space-y-3'>
+      <div className='space-y-4'>
         {/* Gain */}
-        <div className='flex flex-row'>
-          <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
+        <div className='flex flex-row items-center justify-between gap-4'>
+          <p className='text-white text-base font-bold italic font-sans opacity-90 whitespace-nowrap'>
             gain:
           </p>
-          <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-27'>
+          <div className='w-24 h-8 bg-zinc-900/60 focus-within:bg-zinc-900 rounded-full relative overflow-hidden cursor-pointer transition-colors border border-transparent focus-within:border-blue-400/50'>
             <input
               type='number'
-              className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
+              className='w-full h-full bg-transparent text-white text-base font-bold italic font-sans opacity-90 px-4 border-none outline-none rounded-full text-center hover:bg-zinc-800/30'
               onKeyDown={e => handleKeyPress(e, 'gain')}
               onMouseDown={e => e.stopPropagation()}
               placeholder={data?.gain?.toString() || '1'}
@@ -70,36 +70,19 @@ const FileOptions: React.FC<NodeProps> = ({ id, data }) => {
           </div>
         </div>
 
-        {/* Option rows */}
-        <div className='space-y-3'>
-          {/* Gain */}
-          <div className='flex flex-row'>
-            <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
-              pitch shift:
-            </p>
-            <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-27'>
-              <input
-                className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
-                onKeyDown={e => handleKeyPress(e, 'pitch_shift')}
-                onMouseDown={e => e.stopPropagation()}
-                placeholder={data?.pitch_shift?.toString() || '1'}
-              />
-            </div>
-          </div>
-
-          {/* Option 3 */}
-          <div className='space-y-3'>
-            <div className='flex flex-row'>
-              <p className='text-white text-[16px] font-bold italic font-sans opacity-90'>
-                option 3:
-              </p>
-              <div className='w-26 h-8 bg-[#2a2626] rounded-full relative overflow-hidden cursor-pointer ml-20'>
-                <input
-                  className='w-full h-full bg-transparent text-white text-[16px] font-bold italic font-sans opacity-90 px-5 border-none outline-none rounded-full'
-                  onMouseDown={e => e.stopPropagation()}
-                />
-              </div>
-            </div>
+        {/* Pitch shift */}
+        <div className='flex flex-row items-center justify-between gap-4'>
+          <p className='text-white text-base font-bold italic font-sans opacity-90 whitespace-nowrap'>
+            pitch shift:
+          </p>
+          <div className='w-24 h-8 bg-zinc-900/60 focus-within:bg-zinc-900 rounded-full relative overflow-hidden cursor-pointer transition-colors border border-transparent focus-within:border-blue-400/50'>
+            <input
+              type='number'
+              className='w-full h-full bg-transparent text-white text-base font-bold italic font-sans opacity-90 px-4 border-none outline-none rounded-full text-center hover:bg-zinc-800/30'
+              onKeyDown={e => handleKeyPress(e, 'pitch_shift')}
+              onMouseDown={e => e.stopPropagation()}
+              placeholder={data?.pitch_shift?.toString() || '1'}
+            />
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Handle, Position, useReactFlow, type NodeProps } from '@xyflow/react';
 import clsx from 'clsx';
 import FileDropdown from './FileDropdown';
 import { useAvailableFilesForMixers } from './hooks/useAvailabeFiles';
+import { useCallback, useEffect } from 'react';
 
 const OUTPUT = {
   id: 'file-output',
@@ -15,7 +16,7 @@ const OUTPUT = {
     transform: 'translateY(-50%)',
     width: '24px',
     height: '24px',
-    background: '#709DFF',
+    background: '#60a5fa',
     borderRadius: '50%',
     border: 'none',
   },
@@ -30,7 +31,7 @@ const INPUT = {
     transform: 'translateY(-50%)',
     width: '24px',
     height: '24px',
-    background: '#709DFF',
+    background: '#60a5fa',
     borderRadius: '50%',
     border: 'none',
   },
@@ -48,20 +49,29 @@ const FileInputNodeComponent: React.FC<NodeProps> = ({ id, data }) => {
   // Only offer files not already used by sibling FileInputs that feed the same mixer(s)
   const available = useAvailableFilesForMixers(id, allFiles);
 
-  const handleFileSelect = (file: string) => {
-    updateNodeData(id, {
-      fileName: file,
-      filePath: file,
-      options: { gain: 1 },
-    });
-    // No manual notify needed: nodes/edges/data changed → store subscribers re-run
-  };
+  const handleFileSelect = useCallback(
+    (file: string) => {
+      updateNodeData(id, {
+        fileName: file,
+        filePath: file,
+        options: { gain: 1 },
+      });
+      // No manual notify needed: nodes/edges/data changed → store subscribers re-run
+    },
+    [id, updateNodeData]
+  );
+
+  useEffect(() => {
+    if (!selectedExists) {
+      handleFileSelect('unknown');
+    }
+  }, [selectedExists, handleFileSelect]);
 
   return (
     <div
       className={clsx(
-        'relative bg-[#383434] rounded-2xl shadow-2xl border-4 transition-all duration-200 min-w-[250px]',
-        isProcessing ? 'border-white' : 'border-[#383434]',
+        'relative animate-drop-in bg-zinc-800 rounded-2xl shadow-2xl border-4 transition-all duration-200 min-w-64 w-full',
+        isProcessing ? 'border-white' : 'border-zinc-800',
         !selectedExists && 'border-amber-400'
       )}
       data-testid={`file-input-node-${id}`}

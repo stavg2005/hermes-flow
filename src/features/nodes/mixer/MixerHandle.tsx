@@ -22,7 +22,7 @@ const HANDLE_STYLES = {
 const COMMON_HANDLE_STYLE = {
   width: '24px',
   height: '24px',
-  background: '#709DFF',
+  background: '#60a5fa',
   borderRadius: '50%',
   border: 'none',
 } as const;

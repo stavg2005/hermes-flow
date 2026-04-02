@@ -53,7 +53,7 @@ const ClientItem = memo<ClientItemProps>(
               onChange={e => setLocalIP(e.target.value)}
               onBlur={handleIPSubmit}
               onKeyDown={e => e.key === 'Enter' && handleIPSubmit()}
-              className='bg-[#2a2626] px-2 py-1 rounded text-white text-sm font-mono flex-1'
+              className='bg-zinc-900/50 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-blue-400 px-2 py-1 rounded text-white text-sm font-mono flex-1 transition-colors'
               placeholder='127.0.0.1'
               disabled={isProcessing}
             />
@@ -66,7 +66,7 @@ const ClientItem = memo<ClientItemProps>(
               onChange={e => setLocalPort(e.target.value)}
               onBlur={handlePortSubmit}
               onKeyDown={e => e.key === 'Enter' && handlePortSubmit()}
-              className='bg-[#2a2626] px-2 py-1 rounded text-white text-sm font-mono flex-1'
+              className='bg-zinc-900/50 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-blue-400 px-2 py-1 rounded text-white text-sm font-mono flex-1 transition-colors'
               placeholder='8000'
               disabled={isProcessing}
             />
